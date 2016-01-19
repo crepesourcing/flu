@@ -40,8 +40,8 @@ module Flu
           after_action(options) { remove_action_uid }
 
           def define_action_uid
-            action_uid              = SecureRandom.uuid
-            @eventually_action_uid  = action_uid
+            action_uid       = SecureRandom.uuid
+            @flu_action_uid  = action_uid
             ActiveRecord::Base.send(:define_method, ACTION_UID_METHOD_NAME, proc { action_uid })
           end
 
@@ -67,7 +67,7 @@ module Flu
               REJECTED_ACTION_PARAMS_KEYS.include?(key)
             end
             action[:data][:user_agent] = request.user_agent
-            action[:action_uid]        = @eventually_action_uid
+            action[:action_uid]        = @flu_action_uid
             flu.track_action(action)
           end
         end
