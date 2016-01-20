@@ -12,7 +12,7 @@ module Flu
           connect_to_exchange
           connected = true
         rescue Bunny::TCPConnectionFailedForAllHosts
-          @logger.warn("Rabbitmq connection failed, try again in 1 second.")
+          @logger.warn("RabbitMQ connection failed, try again in 1 second.")
           sleep 1
         end
       end

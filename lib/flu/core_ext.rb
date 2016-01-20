@@ -18,6 +18,7 @@ module Flu
         def track_change(flu, action_name, changes)
           change               = {}
           change[:model_name]  = self.class.name.underscore
+          change[:model_id]    = id
           change[:data]        = changes.except(:created_at, :updated_at)
           change[:action_uid]  = send(ACTION_UID_METHOD_NAME) if respond_to?(ACTION_UID_METHOD_NAME)
           change[:action_name] = action_name

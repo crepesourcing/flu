@@ -19,12 +19,13 @@ module Flu
 
     def track_change(change)
       return if change[:data].empty?
-      change            = sanitize(change)
-      event             = {}
-      event[:origin]    = Rails.application.class.parent_name.to_s.camelize
-      event[:name]      = "#{change[:model_name]} #{change[:action_name]}"
-      event[:payload]   = deep_camelize(change)
-      event[:timestamp] = Time.now.utc
+      change                    = sanitize(change)
+      event                     = {}
+      event[:origin]            = Rails.application.class.parent_name.to_s.camelize
+      event[:name]              = "#{change[:model_name]} #{change[:action_name]}"
+      event[:payload]           = deep_camelize(change)
+      event[:payload][:modelId] = id
+      event[:timestamp]         = Time.now.utc
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       @world.spread(event)
     end
