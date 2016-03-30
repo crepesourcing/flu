@@ -10,18 +10,32 @@ module Flu
     def self.extend_active_record_base(flu)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_change) do |options = {}|
-          after_create  { track_change(flu, :create, changes) }
-          after_update  { track_change(flu, :update, changes) }
+          additional_data_lambda = options[:additional_data] || {}
+          after_create  { track_change(flu, :create, changes, additional_data_lambda[:create]) }
+          after_update  { track_change(flu, :update, changes, additional_data_lambda[:update]) }
           after_destroy { track_change(flu, :destroy, "id": [id, nil]) }
         end
 
-        def track_change(flu, action_name, changes)
-          change               = {}
-          change[:model_name]  = self.class.name.underscore
-          change[:model_id]    = id
-          change[:data]        = changes.except(:created_at, :updated_at)
-          change[:action_uid]  = send(ACTION_UID_METHOD_NAME) if respond_to?(ACTION_UID_METHOD_NAME)
-          change[:action_name] = action_name
+        def track_change(flu, action_name, changes, additional_data_lambda)
+          change                = {}
+          change[:model_name]   = self.class.name.underscore
+          change[:model_id]     = id
+          change[:data]         = changes.except(:created_at, :updated_at)
+          change[:action_uid]   = send(ACTION_UID_METHOD_NAME) if respond_to?(ACTION_UID_METHOD_NAME)
+          change[:action_name]  = action_name
+
+          if additional_data_lambda
+            additional_data            = instance_exec(&additional_data_lambda)
+            formatted_additionnal_data = {}
+            additional_data.each do |key, value|
+              if value.has_key?(:old) && value.has_key?(:new)
+                formatted_additionnal_data[key] = [value[:old], value[:new]] if value[:old] != value[:new]
+              else
+                raise "The additional data format should be { old: old_value, new: new_value }"
+              end
+            end
+            change[:data] = change[:data].merge(formatted_additionnal_data)
+          end
           flu.track_change(change)
         end
       end
