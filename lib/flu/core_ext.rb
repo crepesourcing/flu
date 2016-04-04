@@ -11,12 +11,28 @@ module Flu
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_change) do |options = {}|
           additional_data_lambda = options[:additional_data] || {}
-          after_create  { track_change(flu, :create, changes, additional_data_lambda[:create]) }
-          after_update  { track_change(flu, :update, changes, additional_data_lambda[:update]) }
-          after_destroy { track_change(flu, :destroy, "id": [id, nil]) }
+          after_create   { flu_track_change(flu, :create, changes, additional_data_lambda[:create]) }
+          after_update   { flu_track_change(flu, :update, changes, additional_data_lambda[:update]) }
+          after_destroy  { flu_track_change(flu, :destroy, "id": [id, nil]) }
+          after_commit   { flu_commit_changes(flu) }
+          after_rollback { flu_rollback_changes }
         end
 
-        def track_change(flu, action_name, changes, additional_data_lambda)
+        def flu_changes
+          @flu_changes ||= []
+        end
+
+        def flu_commit_changes(flu)
+          flu_changes.each do |change|
+            flu.track_change(change)
+          end
+        end
+
+        def flu_rollback_changes
+          @flu_changes = []
+        end
+
+        def flu_track_change(flu, action_name, changes, additional_data_lambda)
           change                = {}
           change[:model_name]   = self.class.name.underscore
           change[:model_id]     = id
@@ -36,7 +52,7 @@ module Flu
             end
             change[:data] = change[:data].merge(formatted_additionnal_data)
           end
-          flu.track_change(change)
+          flu_changes.push change
         end
       end
     end
