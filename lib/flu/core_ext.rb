@@ -13,7 +13,7 @@ module Flu
           additional_data_lambda = options[:additional_data] || {}
           after_create   { flu_track_change(flu, :create, changes, additional_data_lambda[:create]) }
           after_update   { flu_track_change(flu, :update, changes, additional_data_lambda[:update]) }
-          after_destroy  { flu_track_change(flu, :destroy, "id": [id, nil]) }
+          after_destroy  { flu_track_change(flu, :destroy, { "id": [id, nil] }, nil) }
           after_commit   { flu_commit_changes(flu) }
           after_rollback { flu_rollback_changes }
         end
