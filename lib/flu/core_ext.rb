@@ -36,7 +36,7 @@ module Flu
           change                = {}
           change[:model_name]   = self.class.name.underscore
           change[:model_id]     = id
-          change[:data]         = changes.except(:created_at, :updated_at)
+          change[:changes]         = changes.except(:created_at, :updated_at)
           change[:action_uid]   = send(ACTION_UID_METHOD_NAME) if respond_to?(ACTION_UID_METHOD_NAME)
           change[:action_name]  = action_name
 
@@ -50,7 +50,7 @@ module Flu
                 raise "The additional data format should be { old: old_value, new: new_value }"
               end
             end
-            change[:data] = change[:data].merge(formatted_additionnal_data)
+            change[:changes] = change[:changes].merge(formatted_additionnal_data)
           end
           flu_changes.push change
         end
@@ -94,10 +94,10 @@ module Flu
             action[:controller_name]   = params[:controller]
             action[:action_name]       = params[:action]
             action[:response_code]     = response.status
-            action[:data]              = params.reject do |key, _value|
+            action[:params]              = params.reject do |key, _value|
               REJECTED_ACTION_PARAMS_KEYS.include?(key)
             end
-            action[:data][:user_agent] = request.user_agent
+            action[:user_agent] = request.user_agent
             action[:action_uid]        = @flu_action_uid
             flu.track_action(action)
           end

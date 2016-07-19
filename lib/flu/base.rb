@@ -11,7 +11,7 @@ module Flu
       event             = {}
       event[:origin]    = Rails.application.class.parent_name.to_s.camelize
       event[:name]      = "#{action[:controller_name]} #{action[:action_name]}"
-      event[:payload]   = deep_camelize(action)
+      event[:data]      = deep_camelize(action)
       event[:timestamp] = Time.now.utc
       @logger.debug("Track action: " + JSON.pretty_generate(event))
       @world.spread(event)
@@ -23,7 +23,7 @@ module Flu
       event                     = {}
       event[:origin]            = Rails.application.class.parent_name.to_s.camelize
       event[:name]              = "#{change[:model_name]} #{change[:action_name]}"
-      event[:payload]           = deep_camelize(change)
+      event[:data]               = deep_camelize(change)
       event[:timestamp]         = Time.now.utc
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       @world.spread(event)
