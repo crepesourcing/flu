@@ -7,24 +7,25 @@ module Flu
     end
 
     def track_action(action)
-      action            = sanitize(action)
-      event             = {}
-      event[:origin]    = Rails.application.class.parent_name.to_s.camelize
-      event[:name]      = "#{action[:controller_name]} #{action[:action_name]}"
-      event[:data]      = deep_camelize(action)
-      event[:timestamp] = Time.now.utc
+      action              = sanitize(action)
+      event               = {}
+      event[:origin]      = Rails.application.class.parent_name.to_s.camelize
+      event[:name]        = "request to #{action[:action_name]} #{action[:controller_name]}"
+      event[:data]        = deep_camelize(action)
+      event[:timestamp]   = Time.now.utc
       @logger.debug("Track action: " + JSON.pretty_generate(event))
+
       @world.spread(event)
     end
 
     def track_change(change)
       return if change[:data].empty?
-      change                    = sanitize(change)
-      event                     = {}
-      event[:origin]            = Rails.application.class.parent_name.to_s.camelize
-      event[:name]              = "#{change[:model_name]} #{change[:action_name]}"
-      event[:data]               = deep_camelize(change)
-      event[:timestamp]         = Time.now.utc
+      change              = sanitize(change)
+      event               = {}
+      event[:origin]      = Rails.application.class.parent_name.to_s.camelize
+      event[:name]        = "#{change[:action_name]} #{change[:model_name]}"
+      event[:data]        = deep_camelize(change)
+      event[:timestamp]   = Time.now.utc
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       @world.spread(event)
     end

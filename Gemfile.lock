@@ -1,0 +1,22 @@
+PATH
+  remote: .
+  specs:
+    flu (0.1.0)
+      bunny (= 2.2.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    amq-protocol (2.0.1)
+    bunny (2.2.2)
+      amq-protocol (>= 2.0.1)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  bundler (~> 1.10)
+  flu!
+
+BUNDLED WITH
+   1.12.5
