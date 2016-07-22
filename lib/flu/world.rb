@@ -8,6 +8,26 @@ module Flu
       @configuration = configuration
     end
 
+    def spread(data)
+      mapped_object = map_complex_object(data)
+      @exchange.publish(mapped_object.to_json)
+    end
+
+    def connect
+      connected = false
+      while !connected
+        begin
+          connect_to_exchange
+          connected = true
+        rescue Bunny::TCPConnectionFailedForAllHosts
+          @logger.warn("RabbitMQ connection failed, try again in 1 second.")
+          sleep 1
+        end
+      end
+    end
+
+    private
+
     def connect_to_exchange
       @connection = Bunny.new(host: @configuration.rabbitmq_host,
                               port: @configuration.rabbitmq_port,
@@ -20,13 +40,6 @@ module Flu
                                 @configuration.rabbitmq_exchange_name,
                                 durable: @configuration.rabbitmq_exchange_durable)
     end
-
-    def spread(data)
-      mapped_object = map_complex_object(data)
-      @exchange.publish(mapped_object.to_json)
-    end
-
-    private
 
     def map_complex_object(object)
       if object.is_a?(Array)
@@ -62,19 +75,6 @@ module Flu
         "content_type": object.content_type,
         "content":      Base64.encode64(object.tempfile.read)
       }
-    end
-
-    def connect
-      connected = false
-      while !connected
-        begin
-          connect_to_exchange
-          connected = true
-        rescue Bunny::TCPConnectionFailedForAllHosts
-          @logger.warn("RabbitMQ connection failed, try again in 1 second.")
-          sleep 1
-        end
-      end
     end
   end
 end
