@@ -25,6 +25,8 @@ module Flu
   def self.init
     @logger = @configuration.logger || Rails.logger
     @world  = Flu::World.new(@logger, @configuration)
+    @world.connect unless ENV["DISABLE_FLU_AUTO_CONNECT"] == "true"
+
     flu     = Flu::Base.new(@logger, @world, @configuration)
 
     if @configuration.development_environments.include?(Rails.env)

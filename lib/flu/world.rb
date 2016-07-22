@@ -6,16 +6,6 @@ module Flu
     def initialize(logger, configuration)
       @logger        = logger
       @configuration = configuration
-      connected      = false
-      while !connected
-        begin
-          connect_to_exchange
-          connected = true
-        rescue Bunny::TCPConnectionFailedForAllHosts
-          @logger.warn("RabbitMQ connection failed, try again in 1 second.")
-          sleep 1
-        end
-      end
     end
 
     def connect_to_exchange
@@ -72,6 +62,19 @@ module Flu
         "content_type": object.content_type,
         "content":      Base64.encode64(object.tempfile.read)
       }
+    end
+
+    def connect
+      connected = false
+      while !connected
+        begin
+          connect_to_exchange
+          connected = true
+        rescue Bunny::TCPConnectionFailedForAllHosts
+          @logger.warn("RabbitMQ connection failed, try again in 1 second.")
+          sleep 1
+        end
+      end
     end
   end
 end
