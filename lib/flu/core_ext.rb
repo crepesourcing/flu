@@ -1,20 +1,20 @@
 module Flu
   class CoreExt
-    ACTION_UID_METHOD_NAME        = "flu_tracker_action_uid"
-    REJECTED_ACTION_PARAMS_KEYS   = [:controller, :action]
+    REQUEST_ID_METHOD_NAME       = "flu_tracker_request_id"
+    REJECTED_REQUEST_PARAMS_KEYS = [:controller, :action]
 
     def self.extend_active_record_base_dummy
-      ActiveRecord::Base.class_eval { define_singleton_method(:track_change) { ; } }
+      ActiveRecord::Base.class_eval { define_singleton_method(:track_entity_changes) { ; } }
     end
 
-    def self.extend_active_record_base(flu)
+    def self.extend_active_record_base(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
-        define_singleton_method(:track_change) do |options = {}|
+        define_singleton_method(:track_entity_changes) do |options = {}|
           additional_data_lambda = options[:additional_data] || {}
-          after_create   { flu_track_change(flu, :create, changes, additional_data_lambda[:create]) }
-          after_update   { flu_track_change(flu, :update, changes, additional_data_lambda[:update]) }
-          after_destroy  { flu_track_change(flu, :destroy, { "id": [id, nil] }, nil) }
-          after_commit   { flu_commit_changes(flu) }
+          after_create   { flu_track_entity_change(:create, changes, additional_data_lambda[:create]) }
+          after_update   { flu_track_entity_change(:update, changes, additional_data_lambda[:update]) }
+          after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil) }
+          after_commit   { flu_commit_changes }
           after_rollback { flu_rollback_changes }
         end
 
@@ -22,9 +22,10 @@ module Flu
           @flu_changes ||= []
         end
 
-        def flu_commit_changes(flu)
+        def flu_commit_changes
           flu_changes.each do |change|
-            flu.track_change(change)
+            event = event_factory.build_entity_change_event(change)
+            event_publisher.publish(event)
           end
         end
 
@@ -32,83 +33,91 @@ module Flu
           @flu_changes = []
         end
 
-        def flu_track_change(flu, action_name, changes, additional_data_lambda)
-          change                = {}
-          change[:model_name]   = self.class.name.underscore
-          change[:model_id]     = id
-          change[:data]         = changes.except(:created_at, :updated_at)
-          change[:action_uid]   = send(ACTION_UID_METHOD_NAME) if respond_to?(ACTION_UID_METHOD_NAME)
-          change[:action_name]  = action_name
+        def flu_track_entity_change(action_name, changes, additional_data_lambda)
+          data = {
+            entity_id:   id,
+            entity_name: self.class.name.underscore,
+            request_id:  respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil,
+            action_name: action_name,
+            changes:     all_changes_in(changes, additional_data_lambda)
+          }
+          flu_changes.push(data)
+        end
+
+        def all_changes_in(changes, additional_data_lambda)
+          all_changes = changes.except(:created_at, :updated_at)
 
           if additional_data_lambda
-            additional_data            = instance_exec(&additional_data_lambda)
-            formatted_additionnal_data = {}
+            additional_data = instance_exec(&additional_data_lambda)
             additional_data.each do |key, value|
               if value.has_key?(:old) && value.has_key?(:new)
-                formatted_additionnal_data[key] = [value[:old], value[:new]] if value[:old] != value[:new]
+                all_changes[key] = [value[:old], value[:new]] if value[:old] != value[:new]
               else
                 raise "The additional data format should be { old: old_value, new: new_value }"
               end
             end
-            change[:changes] = change[:changes].merge(formatted_additionnal_data)
           end
-          flu_changes.push change
+          all_changes
         end
       end
     end
 
     def self.extend_active_controller_base_dummy
       ActionController::Base.class_eval do
-        define_singleton_method(:track_action) { ; }
+        define_singleton_method(:track_requests) { ; }
       end
     end
 
-    def self.extend_active_controller_base(flu, logger)
+    def self.extend_active_controller_base(event_factory, event_publisher, logger)
       ActionController::Base.class_eval do
-        define_singleton_method(:track_action) do |options = {}|
-          before_action(options) { define_action_uid }
-          prepend_after_action(options) { track_action(flu, logger) }
-          after_action(options) { remove_action_uid }
+        define_singleton_method(:track_requests) do |options = {}|
+          before_action(options) do
+            define_action_id
+            @request_start_time = Time.zone.now
+          end
+          prepend_after_action(options) { track_requests }
+          after_action(options) { remove_request_id }
 
-          def define_action_uid
-            action_uid       = SecureRandom.uuid
-            @flu_action_uid  = action_uid
-            ActiveRecord::Base.send(:define_method, ACTION_UID_METHOD_NAME, proc { action_uid })
+          def define_request_id
+            request_id      = SecureRandom.uuid
+            @flu_request_id = request_id
+            ActiveRecord::Base.send(:define_method, REQUEST_ID_METHOD_NAME, proc { request_id })
           end
 
-          def remove_action_uid
-            ActiveRecord::Base.send(:remove_method, ACTION_UID_METHOD_NAME)
+          def remove_request_id
+            ActiveRecord::Base.send(:remove_method, REQUEST_ID_METHOD_NAME)
           end
 
-          def track_action(flu, logger)
+          def track_requests
             if Flu::CoreExt.rejected_origin?(request)
               logger.warn "Origin user agent rejected: #{request.user_agent}"
               return
             end
-            additional_data_block      = Flu.config.controller_additional_data
-            action                     = {}
-            action[:cookies_data]      = Flu::CoreExt.extract_tracked_session_keys(session)
+            additional_data_block    = Flu.config.controller_additional_data
+            parameters = params.reject do |key, _value|
+              REJECTED_REQUEST_PARAMS_KEYS.include?(key)
+            end
+
+            tracked_request = {
+              request_id:       @flu_request_id,
+              controller_name:  params[:controller],
+              action_name:      params[:action],
+              path:             request.original_fullpath,
+              response_code:    response.status,
+              user_agent:       request.user_agent,
+              duration:         Time.zone.now - @request_start_time,
+              params:           parameters
+            }
+
             if additional_data_block
-              action[:additional_data] = self.instance_exec(&additional_data_block)
+              additional_data = instance_exec(&additional_data_block)
+              tracked_request = tracked_request.merge(additional_data)
             end
-            action[:controller_name]   = params[:controller]
-            action[:action_name]       = params[:action]
-            action[:response_code]     = response.status
-            action[:params]              = params.reject do |key, _value|
-              REJECTED_ACTION_PARAMS_KEYS.include?(key)
-            end
-            action[:user_agent] = request.user_agent
-            action[:action_uid]        = @flu_action_uid
-            flu.track_action(action)
+
+            event = event_factory.build_request_event(tracked_request)
+            event_publisher.publish(event)
           end
         end
-      end
-    end
-
-    def self.extract_tracked_session_keys(session)
-      keys = Flu.config.tracked_session_keys
-      keys.each_with_object({}) do |key, hash|
-        hash[key] = session[key]
       end
     end
 

@@ -2,14 +2,14 @@ require "base64"
 require "bunny"
 
 module Flu
-  class World
+  class EventPublisher
     def initialize(logger, configuration)
       @logger        = logger
       @configuration = configuration
     end
 
-    def spread(data)
-      mapped_object = map_complex_object(data)
+    def spread(event)
+      mapped_object = map_complex_object(event)
       @exchange.publish(mapped_object.to_json)
     end
 

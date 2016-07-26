@@ -1,8 +1,8 @@
 require_relative "flu/version"
-require_relative "flu/base"
+require_relative "flu/event_factory"
 require_relative "flu/configuration"
 require_relative "flu/core_ext"
-require_relative "flu/world"
+require_relative "flu/event_publisher"
 require_relative "flu/railtie" if defined?(Rails)
 
 module Flu
@@ -18,24 +18,26 @@ module Flu
     @logger
   end
 
-  def self.world
-    @world
+  def self.event_publisher
+    @event_publisher
   end
 
   def self.init
-    @logger = @configuration.logger || Rails.logger
-    @world  = Flu::World.new(@logger, @configuration)
-    @world.connect unless ENV["DISABLE_FLU_AUTO_CONNECT"] == "true"
-
-    flu     = Flu::Base.new(@logger, @world, @configuration)
+    @logger          = @configuration.logger || Rails.logger
+    @event_publisher = Flu::EventPublisher.new(@logger, @configuration)
+    @event_factory   = Flu::EventFactory.new(@logger, @configuration)
 
     if @configuration.development_environments.include?(Rails.env)
       Flu::CoreExt.extend_active_record_base_dummy
       Flu::CoreExt.extend_active_controller_base_dummy
     else
-      Flu::CoreExt.extend_active_record_base(flu)
-      Flu::CoreExt.extend_active_controller_base(flu, @logger)
+      Flu::CoreExt.extend_active_record_base(@event_factory, @event_publisher)
+      Flu::CoreExt.extend_active_controller_base(@event_factory, @event_publisher, @logger)
     end
+  end
+
+  def self.start
+    @event_publisher.connect if config.auto_connect_to_exchange
   end
 
   configure do |config|
@@ -51,5 +53,6 @@ module Flu
     config.rabbitmq_exchange_name     = "events"
     config.rabbitmq_exchange_type     = "fanout"
     config.rabbitmq_exchange_durable  = true
+    config.auto_connect_to_exchange   = true
   end
 end
