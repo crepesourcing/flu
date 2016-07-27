@@ -1,4 +1,3 @@
-require "base64"
 require "bunny"
 
 module Flu
@@ -72,8 +71,7 @@ module Flu
     def map_file(object)
       {
         "file_name":    object.original_filename,
-        "content_type": object.content_type,
-        "content":      Base64.encode64(object.tempfile.read)
+        "content_type": object.content_type
       }
     end
   end
