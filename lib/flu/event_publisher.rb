@@ -8,7 +8,7 @@ module Flu
       @configuration = configuration
     end
 
-    def spread(event)
+    def publish(event)
       mapped_object = map_complex_object(event)
       @exchange.publish(mapped_object.to_json)
     end

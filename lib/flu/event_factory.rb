@@ -29,7 +29,7 @@ module Flu
       event  = {
         meta: {
           id:        SecureRandom.uuid,
-          name:      "#{data[:action_name]} #{data[:model_name]}",
+          name:      "#{data[:action_name]} #{data[:entity_name]}",
           emitter:   @emitter,
           timestamp: Time.zone.now,
           kind:      "entity_change"

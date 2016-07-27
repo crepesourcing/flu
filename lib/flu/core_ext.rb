@@ -14,7 +14,7 @@ module Flu
           after_create   { flu_track_entity_change(:create, changes, additional_data_lambda[:create]) }
           after_update   { flu_track_entity_change(:update, changes, additional_data_lambda[:update]) }
           after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil) }
-          after_commit   { flu_commit_changes }
+          after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
         end
 
@@ -22,7 +22,7 @@ module Flu
           @flu_changes ||= []
         end
 
-        def flu_commit_changes
+        def flu_commit_changes(event_factory, event_publisher)
           flu_changes.each do |change|
             event = event_factory.build_entity_change_event(change)
             event_publisher.publish(event)
@@ -72,10 +72,10 @@ module Flu
       ActionController::Base.class_eval do
         define_singleton_method(:track_requests) do |options = {}|
           before_action(options) do
-            define_action_id
+            define_request_id
             @request_start_time = Time.zone.now
           end
-          prepend_after_action(options) { track_requests }
+          prepend_after_action(options) { track_requests(event_factory, event_publisher) }
           after_action(options) { remove_request_id }
 
           def define_request_id
@@ -88,7 +88,7 @@ module Flu
             ActiveRecord::Base.send(:remove_method, REQUEST_ID_METHOD_NAME)
           end
 
-          def track_requests
+          def track_requests(event_factory, event_publisher)
             if Flu::CoreExt.rejected_origin?(request)
               logger.warn "Origin user agent rejected: #{request.user_agent}"
               return
