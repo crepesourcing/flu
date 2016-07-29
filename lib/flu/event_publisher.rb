@@ -8,8 +8,10 @@ module Flu
     end
 
     def publish(event)
-      mapped_object = map_complex_object(event)
-      @exchange.publish(mapped_object.to_json)
+      routing_key = event.to_routing_key
+      @logger.debug("Publishing event with id '#{event.id}' with routing key: #{routing_key}")
+      @exchange.publish(event.to_json, routing_key: routing_key)
+      @logger.debug("Event published.")
     end
 
     def connect
@@ -28,51 +30,16 @@ module Flu
     private
 
     def connect_to_exchange
-      @connection = Bunny.new(host: @configuration.rabbitmq_host,
-                              port: @configuration.rabbitmq_port,
-                              user: @configuration.rabbitmq_user,
+      @connection = Bunny.new(host:     @configuration.rabbitmq_host,
+                              port:     @configuration.rabbitmq_port,
+                              user:     @configuration.rabbitmq_user,
                               password: @configuration.rabbitmq_password,
                               automatically_recover: true)
       @connection.start
       @channel  = @connection.create_channel
-      @exchange = @channel.send(@configuration.rabbitmq_exchange_type,
+      @exchange = @channel.send(:topic,
                                 @configuration.rabbitmq_exchange_name,
                                 durable: @configuration.rabbitmq_exchange_durable)
-    end
-
-    def map_complex_object(object)
-      if object.is_a?(Array)
-        map_array(object)
-      elsif object.is_a?(Hash)
-        map_hash(object)
-      elsif object.is_a?(ActionDispatch::Http::UploadedFile)
-        map_file(object)
-      else
-        object
-      end
-    end
-
-    def map_array(object)
-      array = []
-      object.each do |value|
-        array.push(map_complex_object(value))
-      end
-      array
-    end
-
-    def map_hash(object)
-      hash = {}
-      object.each do |key, value|
-        hash[key] = map_complex_object(value)
-      end
-      hash
-    end
-
-    def map_file(object)
-      {
-        "file_name":    object.original_filename,
-        "content_type": object.content_type
-      }
     end
   end
 end

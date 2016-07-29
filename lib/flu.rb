@@ -1,4 +1,5 @@
 require_relative "flu/version"
+require_relative "flu/event"
 require_relative "flu/event_factory"
 require_relative "flu/configuration"
 require_relative "flu/core_ext"
@@ -51,7 +52,6 @@ module Flu
     config.rabbitmq_user              = ""
     config.rabbitmq_password          = ""
     config.rabbitmq_exchange_name     = "events"
-    config.rabbitmq_exchange_type     = "fanout"
     config.rabbitmq_exchange_durable  = true
     config.auto_connect_to_exchange   = true
   end

@@ -11,7 +11,6 @@ module Flu
     config_accessor :rabbitmq_user
     config_accessor :rabbitmq_password
     config_accessor :rabbitmq_exchange_name
-    config_accessor :rabbitmq_exchange_type
     config_accessor :rabbitmq_exchange_durable
     config_accessor :auto_connect_to_exchange
   end

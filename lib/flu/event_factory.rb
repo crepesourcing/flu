@@ -7,35 +7,22 @@ module Flu
     end
 
     def build_request_event(data)
-      data  = sanitize(data)
-      event = {
-        meta: {
-          id:        SecureRandom.uuid,
-          name:      "request to #{data[:action_name]} #{data[:controller_name]}",
-          emitter:   @emitter,
-          timestamp: Time.now.utc,
-          kind:      "request"
-        }, data: data
-      }
+      data  = deep_camelize(sanitize(data))
+      name  = "request to #{data[:action_name]} #{data[:controller_name]}"
+      kind  = "request"
+      event = Event.new(@emitter, kind, name, data)
 
-      event = deep_camelize(event)
-      @logger.debug("Track action: " + JSON.pretty_generate(event))
+      @logger.debug("Track action: #{JSON.pretty_generate(event)}")
       event
     end
 
     def build_entity_change_event(data)
       return if data[:changes].empty?
-      change = sanitize(change)
-      event  = {
-        meta: {
-          id:        SecureRandom.uuid,
-          name:      "#{data[:action_name]} #{data[:entity_name]}",
-          emitter:   @emitter,
-          timestamp: Time.zone.now,
-          kind:      "entity_change"
-        }, data: data
-      }
-      event = deep_camelize(event)
+
+      name  = "#{data[:action_name]} #{data[:entity_name]}"
+      kind  = "entity_change"
+      event = Event.new(@emitter, kind, name, deep_camelize(sanitize(data)))
+
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       event
     end
