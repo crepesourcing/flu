@@ -10,12 +10,28 @@ module Flu
     def self.extend_active_record_base(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
-          additional_data_lambda = options[:additional_data] || {}
-          after_create   { flu_track_entity_change(:create, changes, additional_data_lambda[:create]) }
-          after_update   { flu_track_entity_change(:update, changes, additional_data_lambda[:update]) }
-          after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil) }
+          additional_data_lambda                  = options[:additional_data] || {}
+          @@flu_additional_tracked_data_on_create = additional_data_lambda[:create]
+          @@flu_additional_tracked_data_on_update = additional_data_lambda[:update]
+          @@flu_is_tracked                        = true
+
+          after_create   { flu_track_entity_change(:create, changes, @@flu_additional_tracked_data_on_create, event_factory) }
+          after_update   { flu_track_entity_change(:update, changes, @@flu_additional_tracked_data_on_update, event_factory) }
+          after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil, event_factory) }
           after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
+        end
+
+        def self.flu_is_tracked
+          @@flu_is_tracked
+        end
+
+        def self.flu_additional_tracked_data_on_create
+           @@flu_additional_tracked_data_on_create
+        end
+
+        def self.flu_additional_tracked_data_on_update
+           @@flu_additional_tracked_data_on_update
         end
 
         def flu_changes
@@ -23,7 +39,7 @@ module Flu
         end
 
         def flu_commit_changes(event_factory, event_publisher)
-          flu_changes.each do |change|
+          flu_changes.each do | change |
             event = event_factory.build_entity_change_event(change)
             event_publisher.publish(event)
           end
@@ -33,31 +49,10 @@ module Flu
           @flu_changes = []
         end
 
-        def flu_track_entity_change(action_name, changes, additional_data_lambda)
-          data = {
-            entity_id:   id,
-            entity_name: self.class.name.underscore,
-            request_id:  respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil,
-            action_name: action_name,
-            changes:     all_changes_in(changes, additional_data_lambda)
-          }
+        def flu_track_entity_change(action_name, changes, additional_data_lambda, event_factory)
+          request_id = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
+          data       = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, additional_data_lambda)
           flu_changes.push(data)
-        end
-
-        def all_changes_in(changes, additional_data_lambda)
-          all_changes = changes.except(:created_at, :updated_at)
-
-          if additional_data_lambda
-            additional_data = instance_exec(&additional_data_lambda)
-            additional_data.each do |key, value|
-              if value.has_key?(:old) && value.has_key?(:new)
-                all_changes[key] = [value[:old], value[:new]] if value[:old] != value[:new]
-              else
-                raise "The additional data format should be { old: old_value, new: new_value }"
-              end
-            end
-          end
-          all_changes
         end
       end
     end

@@ -19,6 +19,10 @@ module Flu
     @logger
   end
 
+  def self.event_factory
+    @event_factory
+  end
+
   def self.event_publisher
     @event_publisher
   end

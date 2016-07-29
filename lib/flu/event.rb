@@ -7,7 +7,8 @@ module Flu
         name:      name,
         emitter:   emitter,
         timestamp: Time.now.utc,
-        kind:      kind
+        kind:      kind,
+        replayed:  false
       }
       @data = data
     end
@@ -25,6 +26,14 @@ module Flu
 
     def id
       @meta[:id]
+    end
+
+    def timestamp=(new_timestamp)
+      @meta[:timestamp] = new_timestamp
+    end
+
+    def mark_as_replayed
+      @meta[:replayed] = true
     end
 
     private
