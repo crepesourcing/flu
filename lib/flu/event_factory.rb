@@ -7,8 +7,8 @@ module Flu
     end
 
     def build_request_event(data)
-      data  = deep_camelize(sanitize(data))
       name  = "request to #{data[:action_name]} #{data[:controller_name]}"
+      data  = deep_camelize(sanitize(data))
       kind  = "request"
       event = Event.new(@emitter, kind, name, data)
 
