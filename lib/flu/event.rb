@@ -1,9 +1,9 @@
 module Flu
   class Event
 
-    def initialize(emitter, kind, name, data)
+    def initialize(uuid, emitter, kind, name, data)
       @meta = {
-        id:        SecureRandom.uuid,
+        id:        uuid,
         name:      name,
         emitter:   emitter,
         timestamp: Time.now.utc,

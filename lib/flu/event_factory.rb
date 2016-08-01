@@ -10,7 +10,7 @@ module Flu
       name  = "request to #{data[:action_name]} #{data[:controller_name]}"
       data  = deep_camelize(sanitize(data))
       kind  = "request"
-      event = Event.new(@emitter, kind, name, data)
+      event = Event.new(SecureRandom.uuid, @emitter, kind, name, data)
 
       @logger.debug("Track action: #{JSON.pretty_generate(event)}")
       event
@@ -21,7 +21,7 @@ module Flu
 
       name  = "#{data[:action_name]} #{data[:entity_name]}"
       kind  = "entity_change"
-      event = Event.new(@emitter, kind, name, deep_camelize(sanitize(data)))
+      event = Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(sanitize(data)))
 
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       event
