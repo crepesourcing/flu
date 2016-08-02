@@ -65,12 +65,13 @@ module Flu
           @flu_changes = []
         end
 
-        def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory)
+        def flu_track_entity_change(action_name, data, user_metadata_lambda, event_factory)
+          return if data[:changes].empty?
           foreign_keys = self.class.flu_foreign_keys do
             self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
           end
           request_id   = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
-          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, user_metadata_lambda, foreign_keys)
+          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, data, user_metadata_lambda, foreign_keys)
           flu_changes.push(data)
         end
       end
@@ -122,13 +123,8 @@ module Flu
               duration:         Time.zone.now - @request_start_time,
               params:           parameters
             }
-
-            if user_metadata_block
-              user_metadata   = instance_exec(&user_metadata_block)
-              tracked_request = tracked_request.merge(user_metadata)
-            end
-
-            event = event_factory.build_request_event(tracked_request)
+            tracked_request[:user_metadata] = instance_exec(&user_metadata_block) if user_metadata_block
+            event                           = event_factory.build_request_event(tracked_request)
             event_publisher.publish(event)
           end
         end

@@ -17,8 +17,7 @@ module Flu
     end
 
     def build_entity_change_event(data)
-      return if data[:changes].empty?
-
+      raise "data must have changes" if data[:changes].empty?
       name  = "#{data[:action_name]} #{data[:entity_name]}"
       kind  = "entity_change"
       event = Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(sanitize(data)))
