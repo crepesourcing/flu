@@ -27,13 +27,15 @@ module Flu
       event
     end
 
-    def create_data_from_entity_changes(action_name, entity, request_id, changes, additional_data_lambda)
+    def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys)
       {
-        entity_id:   entity.id,
-        entity_name: entity.class.name.underscore,
-        request_id:  request_id,
-        action_name: action_name,
-        changes:     all_changes_in(changes, additional_data_lambda)
+        entity_id:     entity.id,
+        entity_name:   entity.class.name.underscore,
+        request_id:    request_id,
+        action_name:   action_name,
+        changes:       changes.except(:created_at, :updated_at),
+        user_metadata: user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
+        associations:  extract_associations_from(entity, foreign_keys)
       }
     end
 
@@ -71,20 +73,11 @@ module Flu
       end
     end
 
-    def all_changes_in(changes, additional_data_lambda)
-      all_changes = changes.except(:created_at, :updated_at)
-
-      if additional_data_lambda
-        additional_data = instance_exec(&additional_data_lambda)
-        additional_data.each do |key, value|
-          if value.has_key?(:old) && value.has_key?(:new)
-            all_changes[key] = [value[:old], value[:new]] if value[:old] != value[:new]
-          else
-            raise "The additional data format should be { old: old_value, new: new_value }"
-          end
-        end
+    def extract_associations_from(entity, foreign_keys)
+      foreign_keys.inject({}) do | associations, foreign_key |
+        associations[foreign_key] = entity[foreign_key]
+        associations
       end
-      all_changes
     end
   end
 end

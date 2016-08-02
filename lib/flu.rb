@@ -46,17 +46,17 @@ module Flu
   end
 
   configure do |config|
-    config.development_environments   = []
-    config.tracked_session_keys       = []
-    config.rejected_user_agents       = []
-    config.logger                     = nil
-    config.controller_additional_data = nil
-    config.rabbitmq_host              = "localhost"
-    config.rabbitmq_port              = "5672"
-    config.rabbitmq_user              = ""
-    config.rabbitmq_password          = ""
-    config.rabbitmq_exchange_name     = "events"
-    config.rabbitmq_exchange_durable  = true
-    config.auto_connect_to_exchange   = true
+    config.development_environments  = []
+    config.tracked_session_keys      = []
+    config.rejected_user_agents      = []
+    config.logger                    = nil
+    config.controller_user_metadata  = nil
+    config.rabbitmq_host             = "localhost"
+    config.rabbitmq_port             = "5672"
+    config.rabbitmq_user             = ""
+    config.rabbitmq_password         = ""
+    config.rabbitmq_exchange_name    = "events"
+    config.rabbitmq_exchange_durable = true
+    config.auto_connect_to_exchange  = true
   end
 end

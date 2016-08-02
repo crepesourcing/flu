@@ -4,20 +4,23 @@ module Flu
       def export_existing_entities_to_events(event_publisher, event_factory)
         check_that_all_entity_types_have_created_at
 
-        Flu.logger.level = Logger::WARN
+        Flu.logger.level             = Logger::WARN
         entity_types                 = find_all_entity_types
         total_number_of_entity_types = entity_types.size
         current_entity_type_index    = 0
         entity_types.each do | entity_type |
-          entities                   = entity_type.all
-          total_number_of_entities   = entities.size
-          current_entity_index       = 0
-          current_entity_type_index += 1;
+          entities                     = entity_type.all
+          total_number_of_entities     = entities.size
+          current_entity_index         = 0
+          current_entity_type_index   += 1;
+          foreign_keys                 = entity_type.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
+          user_metadata_lambda         = entity_type.flu_user_metadata_on_create
+
           entities.each do | entity |
             print "\r"      unless current_entity_index == 0
             current_entity_index += 1
             print "#{entity_type} (#{current_entity_type_index}/#{total_number_of_entity_types}) : #{current_entity_index}/#{total_number_of_entities}"
-            data            = extract_data_from(entity, event_factory)
+            data            = extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys)
             event           = event_factory.build_entity_change_event(data)
             event.timestamp = entity.created_at unless entity.created_at.nil?
             event.mark_as_replayed
@@ -45,10 +48,9 @@ module Flu
         end
       end
 
-      def extract_data_from(entity, event_factory)
-        additional_data_lambda = entity.class.flu_additional_tracked_data_on_create
-        changes                = create_changes_from_existing(entity)
-        event_factory.create_data_from_entity_changes(:create, entity, nil, changes, additional_data_lambda)
+      def extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys)
+        changes = create_changes_from_existing(entity)
+        event_factory.create_data_from_entity_changes(:create, entity, nil, changes, user_metadata_lambda, foreign_keys)
       end
 
       def create_changes_from_existing(entity)

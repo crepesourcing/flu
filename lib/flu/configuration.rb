@@ -5,7 +5,7 @@ module Flu
     config_accessor :tracked_session_keys
     config_accessor :rejected_user_agents
     config_accessor :logger
-    config_accessor :controller_additional_data
+    config_accessor :controller_user_metadata
     config_accessor :rabbitmq_host
     config_accessor :rabbitmq_port
     config_accessor :rabbitmq_user

@@ -10,28 +10,44 @@ module Flu
     def self.extend_active_record_base(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
-          additional_data_lambda                  = options[:additional_data] || {}
-          @@flu_additional_tracked_data_on_create = additional_data_lambda[:create]
-          @@flu_additional_tracked_data_on_update = additional_data_lambda[:update]
-          @@flu_is_tracked                        = true
+          user_metadata_lambda             = options[:user_metadata] || {}
+          self.flu_user_metadata_on_create = user_metadata_lambda[:create]
+          self.flu_user_metadata_on_update = user_metadata_lambda[:update]
+          self.flu_is_tracked              = true
 
-          after_create   { flu_track_entity_change(:create, changes, @@flu_additional_tracked_data_on_create, event_factory) }
-          after_update   { flu_track_entity_change(:update, changes, @@flu_additional_tracked_data_on_update, event_factory) }
+          after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory) }
+          after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory) }
           after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil, event_factory) }
           after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
         end
 
+        def self.flu_user_metadata_on_create=(lambda)
+          @flu_user_metadata_on_create = lambda
+        end
+
+        def self.flu_is_tracked=(is_tracked)
+          @flu_is_tracked = is_tracked
+        end
+
+        def self.flu_user_metadata_on_update=(lambda)
+          @flu_user_metadata_on_update = lambda
+        end
+
+        def self.flu_foreign_keys(&block)
+          @flu_foreign_keys ||= yield
+        end
+
         def self.flu_is_tracked
-          @@flu_is_tracked
+          @flu_is_tracked
         end
 
-        def self.flu_additional_tracked_data_on_create
-           @@flu_additional_tracked_data_on_create
+        def self.flu_user_metadata_on_create
+          @flu_user_metadata_on_create
         end
 
-        def self.flu_additional_tracked_data_on_update
-           @@flu_additional_tracked_data_on_update
+        def self.flu_user_metadata_on_update
+          @flu_user_metadata_on_update
         end
 
         def flu_changes
@@ -49,9 +65,12 @@ module Flu
           @flu_changes = []
         end
 
-        def flu_track_entity_change(action_name, changes, additional_data_lambda, event_factory)
-          request_id = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
-          data       = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, additional_data_lambda)
+        def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory)
+          foreign_keys = self.class.flu_foreign_keys do
+            self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
+          end
+          request_id   = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
+          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, user_metadata_lambda, foreign_keys)
           flu_changes.push(data)
         end
       end
@@ -88,8 +107,8 @@ module Flu
               logger.warn "Origin user agent rejected: #{request.user_agent}"
               return
             end
-            additional_data_block    = Flu.config.controller_additional_data
-            parameters = params.reject do |key, _value|
+            user_metadata_block = Flu.config.controller_user_metadata
+            parameters          = params.reject do |key, _value|
               REJECTED_REQUEST_PARAMS_KEYS.include?(key)
             end
 
@@ -104,9 +123,9 @@ module Flu
               params:           parameters
             }
 
-            if additional_data_block
-              additional_data = instance_exec(&additional_data_block)
-              tracked_request = tracked_request.merge(additional_data)
+            if user_metadata_block
+              user_metadata   = instance_exec(&user_metadata_block)
+              tracked_request = tracked_request.merge(user_metadata)
             end
 
             event = event_factory.build_request_event(tracked_request)
