@@ -9,9 +9,7 @@ module Flu
     def build_request_event(data)
       name  = "request to #{data[:action_name]} #{data[:controller_name]}"
       data  = deep_camelize(sanitize(data))
-      kind  = "request"
-      event = Event.new(SecureRandom.uuid, @emitter, kind, name, data)
-
+      event = build_event(name, "request", data)
       @logger.debug("Track action: #{JSON.pretty_generate(event)}")
       event
     end
@@ -19,11 +17,13 @@ module Flu
     def build_entity_change_event(data)
       raise "data must have changes" if data[:changes].empty?
       name  = "#{data[:action_name]} #{data[:entity_name]}"
-      kind  = "entity_change"
-      event = Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(sanitize(data)))
-
+      event = build_event(name, "entity_change", data)
       @logger.debug("Track change: " + JSON.pretty_generate(event))
       event
+    end
+
+    def build_event(name, kind, data)
+      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(sanitize(data)))
     end
 
     def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys)

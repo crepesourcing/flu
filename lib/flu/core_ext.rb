@@ -55,8 +55,8 @@ module Flu
         end
 
         def flu_commit_changes(event_factory, event_publisher)
-          flu_changes.each do | change |
-            event = event_factory.build_entity_change_event(change)
+          flu_changes.each do | data |
+            event = event_factory.build_entity_change_event(data)
             event_publisher.publish(event)
           end
         end
@@ -65,13 +65,13 @@ module Flu
           @flu_changes = []
         end
 
-        def flu_track_entity_change(action_name, data, user_metadata_lambda, event_factory)
-          return if data[:changes].empty?
+        def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory)
+          return if changes.empty?
           foreign_keys = self.class.flu_foreign_keys do
             self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
           end
           request_id   = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
-          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, data, user_metadata_lambda, foreign_keys)
+          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, user_metadata_lambda, foreign_keys)
           flu_changes.push(data)
         end
       end
