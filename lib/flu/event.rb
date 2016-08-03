@@ -8,13 +8,13 @@ module Flu
         emitter:   emitter,
         timestamp: Time.now.utc,
         kind:      kind,
-        replayed:  false
+        status:    :new
       }
       @data = data
     end
 
     def to_routing_key
-      "#{@meta[:emitter]}.#{@meta[:kind]}.#{@meta[:name]}"
+      "#{@meta[:status]}.#{@meta[:emitter]}.#{@meta[:kind]}.#{@meta[:name]}"
     end
 
     def to_json(options=nil)
@@ -33,7 +33,7 @@ module Flu
     end
 
     def mark_as_replayed
-      @meta[:replayed] = true
+      @meta[:status] = :replayed
     end
 
     private
