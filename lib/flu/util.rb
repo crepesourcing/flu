@@ -23,7 +23,6 @@ module Flu
             data            = extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys)
             event           = event_factory.build_entity_change_event(data)
             event.timestamp = entity.created_at unless entity.created_at.nil?
-            event.mark_as_replayed
             event_publisher.publish(event)
             print "\n"      if current_entity_index == total_number_of_entities
           end
@@ -55,7 +54,8 @@ module Flu
 
       def create_changes_from_existing(entity)
         changes = entity.attribute_names.inject({}) do | result, attribute_name |
-          result[attribute_name.to_s] = [nil, entity.attributes[attribute_name]]
+          attribute_value             = entity.attributes[attribute_name]
+          result[attribute_name.to_s] = [nil, attribute_value] unless attribute_value.nil?
           result
         end
         changes.except(:created_at, :updated_at)
