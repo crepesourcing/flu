@@ -4,6 +4,7 @@ module Flu
 
     config.to_prepare do
       Flu.init
+      Flu.start
     end
 
     config.after_initialize do
