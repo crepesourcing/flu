@@ -67,7 +67,7 @@ module Flu
         end
 
         def flu_flush_changes
-          @flu_changes = []
+          flu_changes.clear
         end
 
         def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory)
