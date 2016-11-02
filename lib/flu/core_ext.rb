@@ -59,9 +59,14 @@ module Flu
             event = event_factory.build_entity_change_event(data)
             event_publisher.publish(event)
           end
+          flush_changes
         end
 
         def flu_rollback_changes
+          flush_changes
+        end
+
+        def flush_changes
           @flu_changes = []
         end
 
