@@ -6,6 +6,7 @@ module Flu
     config_accessor :rejected_user_agents
     config_accessor :logger
     config_accessor :rabbitmq_host
+    config_accessor :rabbitmq_management_port
     config_accessor :rabbitmq_port
     config_accessor :rabbitmq_user
     config_accessor :rabbitmq_password

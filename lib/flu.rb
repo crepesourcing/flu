@@ -1,6 +1,7 @@
 require_relative "flu/version"
 require_relative "flu/event"
 require_relative "flu/event_factory"
+require_relative "flu/queue_repository"
 require_relative "flu/configuration"
 require_relative "flu/core_ext"
 require_relative "flu/event_publisher"
@@ -52,6 +53,7 @@ module Flu
     config.logger                    = nil
     config.rabbitmq_host             = "localhost"
     config.rabbitmq_port             = "5672"
+    config.rabbitmq_management_port  = "15672"
     config.rabbitmq_user             = ""
     config.rabbitmq_password         = ""
     config.rabbitmq_exchange_name    = "events"
