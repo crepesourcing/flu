@@ -50,7 +50,6 @@ module Flu
     config.tracked_session_keys      = []
     config.rejected_user_agents      = []
     config.logger                    = nil
-    config.controller_user_metadata  = nil
     config.rabbitmq_host             = "localhost"
     config.rabbitmq_port             = "5672"
     config.rabbitmq_user             = ""

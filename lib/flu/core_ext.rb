@@ -95,7 +95,8 @@ module Flu
             define_request_id
             @request_start_time = Time.zone.now
           end
-          prepend_after_action(options) { track_requests(event_factory, event_publisher) }
+          user_metadata_lambda = options[:user_metadata]
+          prepend_after_action(options) { track_requests(event_factory, event_publisher, user_metadata_lambda) }
           after_action(options) { remove_request_id }
 
           def define_request_id
@@ -108,27 +109,26 @@ module Flu
             ActiveRecord::Base.send(:remove_method, REQUEST_ID_METHOD_NAME)
           end
 
-          def track_requests(event_factory, event_publisher)
+          def track_requests(event_factory, event_publisher, user_metadata_lambda)
             if Flu::CoreExt.rejected_origin?(request)
               logger.warn "Origin user agent rejected: #{request.user_agent}"
               return
             end
-            user_metadata_block = Flu.config.controller_user_metadata
             parameters          = params.reject do |key, _value|
               REJECTED_REQUEST_PARAMS_KEYS.include?(key)
             end
 
             tracked_request = {
-              request_id:       @flu_request_id,
-              controller_name:  params[:controller],
-              action_name:      params[:action],
-              path:             request.original_fullpath,
-              response_code:    response.status,
-              user_agent:       request.user_agent,
-              duration:         Time.zone.now - @request_start_time,
-              params:           parameters
+              request_id:      @flu_request_id,
+              controller_name: params[:controller],
+              action_name:     params[:action],
+              path:            request.original_fullpath,
+              response_code:   response.status,
+              user_agent:      request.user_agent,
+              duration:        Time.zone.now - @request_start_time,
+              params:          parameters
             }
-            tracked_request[:user_metadata] = instance_exec(&user_metadata_block) if user_metadata_block
+            tracked_request[:user_metadata] = instance_exec(&user_metadata_lambda) if user_metadata_lambda
             event                           = event_factory.build_request_event(tracked_request)
             event_publisher.publish(event)
           end
