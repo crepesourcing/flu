@@ -26,6 +26,10 @@ module Flu
       @management_client.purge_queue("/", name)
     end
 
+    def delete_queue(name)
+      @management_client.delete_queue("/", name)
+    end
+
     def queue_names_that_match(matcher)
       ## TODO
     end
