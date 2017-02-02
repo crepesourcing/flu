@@ -3,7 +3,10 @@ module Flu
     REQUEST_ID_METHOD_NAME       = "flu_tracker_request_id"
 
     def self.extend_active_record_base_dummy
-      ActiveRecord::Base.class_eval { define_singleton_method(:track_entity_changes) { ; } }
+      ActiveRecord::Base.class_eval do
+        define_singleton_method(:track_entity_changes) do |options = {}|
+        end
+      end
     end
 
     def self.extend_active_record_base(event_factory, event_publisher)
@@ -17,7 +20,7 @@ module Flu
 
           after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory) }
           after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory) }
-          after_destroy  { flu_track_entity_change(:destroy, { "id": [id, nil] }, nil, event_factory) }
+          after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, nil, event_factory) }
           after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
         end
@@ -92,7 +95,8 @@ module Flu
 
     def self.extend_active_controller_base_dummy
       ActionController::Base.class_eval do
-        define_singleton_method(:track_requests) { ; }
+        define_singleton_method(:track_requests) do |options = {}|
+        end
       end
     end
 
