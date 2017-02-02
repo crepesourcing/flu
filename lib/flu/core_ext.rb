@@ -1,7 +1,6 @@
 module Flu
   class CoreExt
     REQUEST_ID_METHOD_NAME       = "flu_tracker_request_id"
-    REJECTED_REQUEST_PARAMS_KEYS = [:controller, :action]
 
     def self.extend_active_record_base_dummy
       ActiveRecord::Base.class_eval { define_singleton_method(:track_entity_changes) { ; } }
@@ -14,6 +13,7 @@ module Flu
           self.flu_user_metadata_on_create = user_metadata_lambda[:create]
           self.flu_user_metadata_on_update = user_metadata_lambda[:update]
           self.flu_is_tracked              = true
+          self.flu_ignored_model_changes   = options[:ignored_model_changes] || []
 
           after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory) }
           after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory) }
@@ -34,6 +34,10 @@ module Flu
           @flu_user_metadata_on_update = lambda
         end
 
+        def self.flu_ignored_model_changes=(ignored_changes)
+          @flu_ignored_model_changes = ignored_changes.map(&:to_sym)
+        end
+
         def self.flu_foreign_keys(&block)
           @flu_foreign_keys ||= yield
         end
@@ -48,6 +52,10 @@ module Flu
 
         def self.flu_user_metadata_on_update
           @flu_user_metadata_on_update
+        end
+
+        def self.flu_ignored_model_changes
+          @flu_ignored_model_changes
         end
 
         def flu_changes
@@ -76,7 +84,7 @@ module Flu
             self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
           end
           request_id   = respond_to?(REQUEST_ID_METHOD_NAME) ? send(REQUEST_ID_METHOD_NAME) : nil
-          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, user_metadata_lambda, foreign_keys)
+          data         = event_factory.create_data_from_entity_changes(action_name, self, request_id, changes, user_metadata_lambda, foreign_keys, flu_ignored_model_changes)
           flu_changes.push(data)
         end
       end
@@ -95,8 +103,10 @@ module Flu
             define_request_id
             @request_start_time = Time.zone.now
           end
-          user_metadata_lambda = options[:user_metadata]
-          prepend_after_action(options) { track_requests(event_factory, event_publisher, user_metadata_lambda) }
+          user_metadata_lambda   = options[:user_metadata]
+          ignored_request_params = options[:ignored_model_changes]&.map(&:to_sym) || []
+
+          prepend_after_action(options) { track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params) }
           after_action(options) { remove_request_id }
 
           def define_request_id
@@ -109,28 +119,20 @@ module Flu
             ActiveRecord::Base.send(:remove_method, REQUEST_ID_METHOD_NAME)
           end
 
-          def track_requests(event_factory, event_publisher, user_metadata_lambda)
+          def track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params)
             if Flu::CoreExt.rejected_origin?(request)
               logger.warn "Origin user agent rejected: #{request.user_agent}"
-              return
+            else
+              tracked_request                 = event_factory.create_data_from_request(@flu_request_id,
+                                                                                       params,
+                                                                                       request,
+                                                                                       response,
+                                                                                       @request_start_time,
+                                                                                       ignored_request_params)
+              tracked_request[:user_metadata] = instance_exec(&user_metadata_lambda) if user_metadata_lambda
+              event                           = event_factory.build_request_event(tracked_request)
+              event_publisher.publish(event)
             end
-            parameters          = params.reject do |key, _value|
-              REJECTED_REQUEST_PARAMS_KEYS.include?(key)
-            end
-
-            tracked_request = {
-              request_id:      @flu_request_id,
-              controller_name: params[:controller],
-              action_name:     params[:action],
-              path:            request.original_fullpath,
-              response_code:   response.status,
-              user_agent:      request.user_agent,
-              duration:        Time.zone.now - @request_start_time,
-              params:          parameters
-            }
-            tracked_request[:user_metadata] = instance_exec(&user_metadata_lambda) if user_metadata_lambda
-            event                           = event_factory.build_request_event(tracked_request)
-            event_publisher.publish(event)
           end
         end
       end

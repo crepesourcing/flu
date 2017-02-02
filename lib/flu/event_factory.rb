@@ -23,39 +23,35 @@ module Flu
     end
 
     def build_event(name, kind, data)
-      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(sanitize(data)))
+      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data, kind))
     end
 
-    def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys)
+    def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)
       {
         entity_id:     entity.id,
         entity_name:   entity.class.name.underscore,
         request_id:    request_id,
         action_name:   action_name,
-        changes:       changes.except(:created_at, :updated_at),
+        changes:       changes.except(ignored_model_changes).except(@configuration.default_ignored_model_changes),
         user_metadata: user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
         associations:  extract_associations_from(entity, foreign_keys)
       }
     end
 
-    private
-
-    def sanitize(value)
-      case value
-      when Array
-        value.map { |v| sanitize(v) }
-      when Hash
-        fitlered_value = {}
-        value.each do |k, v|
-          unless [:password, :password_confirmation].include?(k.to_sym)
-            fitlered_value[k] = sanitize(v)
-          end
-        end
-        fitlered_value
-      else
-        value
-      end
+    def create_data_from_request(request_id, params, request, response, request_start_time, ignored_request_params)
+      {
+        request_id:      request_id,
+        controller_name: params[:controller],
+        action_name:     params[:action],
+        path:            request.original_fullpath,
+        response_code:   response.status,
+        user_agent:      request.user_agent,
+        duration:        Time.zone.now - request_start_time,
+        params:          params.except(ignored_request_params).except(@configuration.default_ignored_request_params)
+      }
     end
+
+    private
 
     def deep_camelize(value)
       case value

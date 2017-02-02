@@ -13,5 +13,7 @@ module Flu
     config_accessor :rabbitmq_exchange_name
     config_accessor :rabbitmq_exchange_durable
     config_accessor :auto_connect_to_exchange
+    config_accessor :default_ignored_model_changes
+    config_accessor :default_ignored_request_params
   end
 end

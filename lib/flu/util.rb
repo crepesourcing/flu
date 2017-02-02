@@ -15,12 +15,13 @@ module Flu
           current_entity_type_index   += 1;
           foreign_keys                 = entity_type.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
           user_metadata_lambda         = entity_type.flu_user_metadata_on_create
+          ignored_model_changes        = entity_type.flu_ignored_model_changes
 
           entities.each do | entity |
             print "\r"      unless current_entity_index == 0
             current_entity_index += 1
             print "#{entity_type} (#{current_entity_type_index}/#{total_number_of_entity_types}) : #{current_entity_index}/#{total_number_of_entities}"
-            data            = extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys)
+            data            = extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys, ignored_model_changes)
             event           = event_factory.build_entity_change_event(data)
             event.timestamp = entity.created_at unless entity.created_at.nil?
             event_publisher.publish(event)
@@ -47,9 +48,9 @@ module Flu
         end
       end
 
-      def extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys)
+      def extract_data_from(entity, event_factory, user_metadata_lambda, foreign_keys, ignored_model_changes)
         changes = create_changes_from_existing(entity)
-        event_factory.create_data_from_entity_changes(:create, entity, nil, changes, user_metadata_lambda, foreign_keys)
+        event_factory.create_data_from_entity_changes(:create, entity, nil, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)
       end
 
       def create_changes_from_existing(entity)
