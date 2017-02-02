@@ -23,7 +23,7 @@ module Flu
     end
 
     def build_event(name, kind, data)
-      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data, kind))
+      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data))
     end
 
     def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)

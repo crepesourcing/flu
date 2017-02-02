@@ -1,6 +1,6 @@
 module Flu
   class CoreExt
-    REQUEST_ID_METHOD_NAME       = "flu_tracker_request_id"
+    REQUEST_ID_METHOD_NAME = "flu_tracker_request_id"
 
     def self.extend_active_record_base_dummy
       ActiveRecord::Base.class_eval do
