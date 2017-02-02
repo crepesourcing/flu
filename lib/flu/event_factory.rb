@@ -27,6 +27,13 @@ module Flu
     end
 
     def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)
+      ap "changes"
+      ap changes
+      ap "ignored_model_changes"
+      ap ignored_model_changes
+      ap "changes.except(ignored_model_changes)"
+      ap changes.except(ignored_model_changes)
+
       {
         entity_id:     entity.id,
         entity_name:   entity.class.name.underscore,
