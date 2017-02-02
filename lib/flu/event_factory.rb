@@ -27,6 +27,12 @@ module Flu
     end
 
     def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)
+      ap "changes"
+      ap changes
+      ap "ignored_model_changes"
+      ap ignored_model_changes
+      ap "@configuration.default_ignored_model_changes"
+      ap @configuration.default_ignored_model_changes
       {
         entity_id:     entity.id,
         entity_name:   entity.class.name.underscore,
@@ -39,12 +45,6 @@ module Flu
     end
 
     def create_data_from_request(request_id, params, request, response, request_start_time, ignored_request_params)
-      ap "params"
-      ap params
-      ap "ignored_request_params"
-      ap ignored_request_params
-      ap "default_ignored_request_params"
-      ap default_ignored_request_params
       {
         request_id:      request_id,
         controller_name: params[:controller],
