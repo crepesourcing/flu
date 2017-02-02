@@ -27,18 +27,12 @@ module Flu
     end
 
     def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, foreign_keys, ignored_model_changes)
-      ap "changes"
-      ap changes
-      ap "ignored_model_changes"
-      ap ignored_model_changes
-      ap "@configuration.default_ignored_model_changes"
-      ap @configuration.default_ignored_model_changes
       {
         entity_id:     entity.id,
         entity_name:   entity.class.name.underscore,
         request_id:    request_id,
         action_name:   action_name,
-        changes:       changes.except(ignored_model_changes).except(@configuration.default_ignored_model_changes),
+        changes:       changes.except(ignored_model_changes).except(@configuration.default_ignored_model_changes.map(&:to_s)),
         user_metadata: user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
         associations:  extract_associations_from(entity, foreign_keys)
       }

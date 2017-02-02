@@ -38,7 +38,7 @@ module Flu
         end
 
         def self.flu_ignored_model_changes=(ignored_changes)
-          @flu_ignored_model_changes = ignored_changes.map(&:to_sym)
+          @flu_ignored_model_changes = ignored_changes.map(&:to_s)
         end
 
         def self.flu_foreign_keys(&block)
