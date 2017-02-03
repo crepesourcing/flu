@@ -18,9 +18,9 @@ module Flu
           self.flu_is_tracked              = true
           self.flu_ignored_model_changes   = options[:ignored_model_changes] || []
 
-          after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory) }
-          after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory) }
-          after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, nil, event_factory) }
+          after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory, flu_ignored_model_changes) }
+          after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory, flu_ignored_model_changes) }
+          after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, nil, event_factory, flu_ignored_model_changes) }
           after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
         end
@@ -81,7 +81,7 @@ module Flu
           flu_changes.clear
         end
 
-        def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory)
+        def flu_track_entity_change(action_name, changes, user_metadata_lambda, event_factory, flu_ignored_model_changes)
           return if changes.empty?
           foreign_keys = self.class.flu_foreign_keys do
             self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
