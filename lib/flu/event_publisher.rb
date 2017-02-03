@@ -2,8 +2,8 @@ require "bunny"
 
 module Flu
   class EventPublisher
-    def initialize(logger, configuration)
-      @logger        = logger
+    def initialize(configuration)
+      @logger        = configuration.logger
       @configuration = configuration
     end
 

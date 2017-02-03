@@ -1,7 +1,14 @@
 module Flu
   class Event
 
+    attr_reader :data
+
     def initialize(uuid, emitter, kind, name, data)
+      raise ArgumentError, "uuid must not be nil"              if uuid.nil?
+      raise ArgumentError, "emitter must not be nil nor empty" if emitter.nil? || emitter.length == 0
+      raise ArgumentError, "kind must not be nil nor empty"    if kind.nil?    || kind.length == 0
+      raise ArgumentError, "name must not be nil nor empty"    if name.nil?    || name.length == 0
+
       @meta = {
         id:        uuid,
         name:      name,
@@ -10,7 +17,7 @@ module Flu
         kind:      kind,
         status:    :new
       }
-      @data = data
+      @data = data || {}
     end
 
     def to_routing_key
@@ -34,6 +41,22 @@ module Flu
 
     def mark_as_replayed
       @meta[:status] = :replayed
+    end
+
+    def emitter
+      @meta[:emitter]
+    end
+
+    def kind
+      @meta[:kind]
+    end
+
+    def name
+      @meta[:name]
+    end
+
+    def status
+      @meta[:status]
     end
 
     private
@@ -72,7 +95,6 @@ module Flu
         "content_type": object.content_type
       }
     end
-
   end
 end
 

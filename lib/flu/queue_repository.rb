@@ -2,12 +2,10 @@ require "rabbitmq/http/client"
 
 module Flu
   class QueueRepository
-    def initialize(logger, configuration)
-      @logger            = logger
+    def initialize(configuration)
+      @logger            = configuration.logger
       @configuration     = configuration
-      @management_client = RabbitMQ::HTTP::Client.new("http://#{@configuration.rabbitmq_host}:#{@configuration.rabbitmq_management_port}/",
-                                                      username: @configuration.rabbitmq_user,
-                                                      password: @configuration.rabbitmq_password)
+      @management_client = create_management_client(configuration)
     end
 
     def find_all
@@ -30,8 +28,13 @@ module Flu
       @management_client.delete_queue("/", name)
     end
 
-    def queue_names_that_match(matcher)
-      ## TODO
+    private
+
+    def create_management_client(configuration)
+      rabbitmq_url = "http://#{configuration.rabbitmq_host}:#{configuration.rabbitmq_management_port}/"
+      RabbitMQ::HTTP::Client.new(rabbitmq_url,
+                                 username: configuration.rabbitmq_user,
+                                 password: configuration.rabbitmq_password)
     end
   end
 end

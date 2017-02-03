@@ -2,13 +2,6 @@ module Flu
   class CoreExt
     REQUEST_ID_METHOD_NAME = "flu_tracker_request_id"
 
-    def self.extend_active_record_base_dummy
-      ActiveRecord::Base.class_eval do
-        define_singleton_method(:track_entity_changes) do |options = {}|
-        end
-      end
-    end
-
     def self.extend_active_record_base(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
@@ -93,13 +86,6 @@ module Flu
       end
     end
 
-    def self.extend_active_controller_base_dummy
-      ActionController::Base.class_eval do
-        define_singleton_method(:track_requests) do |options = {}|
-        end
-      end
-    end
-
     def self.extend_active_controller_base(event_factory, event_publisher, logger)
       ActionController::Base.class_eval do
         define_singleton_method(:track_requests) do |options = {}|
@@ -108,7 +94,7 @@ module Flu
             @request_start_time = Time.zone.now
           end
           user_metadata_lambda   = options[:user_metadata]
-          ignored_request_params = options[:ignored_model_changes]&.map(&:to_sym) || []
+          ignored_request_params = options.fetch(:ignored_model_changes, []).map(&:to_sym)
 
           prepend_after_action(options) { track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params) }
           after_action(options) { remove_request_id }

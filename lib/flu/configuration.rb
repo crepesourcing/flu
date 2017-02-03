@@ -15,5 +15,6 @@ module Flu
     config_accessor :auto_connect_to_exchange
     config_accessor :default_ignored_model_changes
     config_accessor :default_ignored_request_params
+    config_accessor :application_name
   end
 end
