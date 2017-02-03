@@ -47,6 +47,10 @@ module Flu
       @meta[:emitter]
     end
 
+    def timestamp
+      @meta[:timestamp]
+    end
+
     def kind
       @meta[:kind]
     end

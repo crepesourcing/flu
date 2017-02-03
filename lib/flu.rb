@@ -53,8 +53,8 @@ module Flu
   end
 
   def self.extend_models_and_controllers
-    Flu::CoreExt.extend_active_record_base(@event_factory, @event_publisher)
-    Flu::CoreExt.extend_active_controller_base(@event_factory, @event_publisher, @logger)
+    Flu::CoreExt.extend_model_classes(@event_factory, @event_publisher)
+    Flu::CoreExt.extend_controller_classes(@event_factory, @event_publisher, @logger)
   end
 
   def self.start

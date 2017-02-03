@@ -17,5 +17,19 @@ module Flu
 
     def connect
     end
+
+    def events_count
+      @published_events_by_routing_key.map do | key, value |
+        value.size
+      end.sum
+    end
+
+    def fetch_events(routing_key)
+      @published_events_by_routing_key[routing_key]
+    end
+
+    def clear
+      @published_events_by_routing_key = {}
+    end
   end
 end
