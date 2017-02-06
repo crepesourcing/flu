@@ -2,7 +2,7 @@ RSpec.configure do |rspec|
   rspec.shared_context_metadata_behavior = :apply_to_host_groups
 end
 
-RSpec.shared_context "active records in transaction", :shared_context => :metadata do
+RSpec.shared_context "active records defined", :shared_context => :metadata do
   before(:all) do
     set_application_name("ninja_app")
     @event_factory   = Flu::EventFactory.new(Flu.config)
@@ -67,5 +67,5 @@ RSpec.shared_context "active records in transaction", :shared_context => :metada
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "active records in transaction", :include_shared => true
+  rspec.include_context "active records defined", :include_shared => true
 end

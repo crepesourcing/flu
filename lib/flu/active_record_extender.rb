@@ -3,10 +3,10 @@ module Flu
     def self.extend_models(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
+          self.flu_is_tracked     = true
           user_metadata_lambda    = options.fetch(:user_metadata, {})
           user_metadata_on_create = user_metadata_lambda[:create]
           user_metadata_on_update = user_metadata_lambda[:update]
-          self.flu_is_tracked     = true
           ignored_model_changes   = options.fetch(:ignored_model_changes, []).map(&:to_s)
 
           after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory, ignored_model_changes) }
@@ -21,7 +21,7 @@ module Flu
         end
 
         def self.flu_is_tracked
-          @flu_is_tracked
+          @flu_is_tracked || false
         end
 
         def self.flu_foreign_keys(&block)

@@ -1,7 +1,7 @@
-require_relative "../support/active_record_transactional_context"
+require_relative "../support/active_record_context"
 
 RSpec.describe Flu::ActiveRecordExtender do
-  include_context "active records in transaction"
+  include_context "active records defined"
 
   let(:dynasty) { Dynasty.new(name: "Japan", year: 1300) }
 
@@ -20,7 +20,7 @@ RSpec.describe Flu::ActiveRecordExtender do
   context "#extend_models" do
 
     it "Dynasty must not be tracked" do
-      expect(Dynasty.flu_is_tracked).to be nil
+      expect(Dynasty.flu_is_tracked).to be false
     end
 
     it "Ninja must be tracked" do

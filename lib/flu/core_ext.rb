@@ -1,5 +1,5 @@
 require_relative "active_record_extender"
-require_relative "application_controller_extender"
+require_relative "action_controller_extender"
 
 module Flu
   class CoreExt
@@ -10,7 +10,7 @@ module Flu
     end
 
     def self.extend_controller_classes(event_factory, event_publisher, logger)
-      ApplicationControllerExtender.extend_controllers(event_factory, event_publisher, logger)
+      ActionControllerExtender.extend_controllers(event_factory, event_publisher, logger)
     end
   end
 end

@@ -1,17 +1,30 @@
 module Flu
-  class ApplicationControllerExtender
+  class ActionControllerExtender
     def self.extend_controllers(event_factory, event_publisher, logger)
       ActionController::Base.class_eval do
+        def self.flu_is_tracked=(is_tracked)
+          @flu_is_tracked = is_tracked
+        end
+
+        def self.flu_is_tracked
+          @flu_is_tracked || false
+        end
+
         define_singleton_method(:track_requests) do |options = {}|
-          before_action(options) do
+          self.flu_is_tracked    = true
+          user_metadata_lambda   = options[:user_metadata]
+          ignored_request_params = options.fetch(:ignored_request_params, []).map(&:to_sym)
+
+          before_action do
             define_request_id
             @request_start_time = Time.zone.now
           end
-          user_metadata_lambda   = options[:user_metadata]
-          ignored_request_params = options.fetch(:ignored_model_changes, []).map(&:to_sym)
-
-          prepend_after_action(options) { track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params) }
-          after_action(options) { remove_request_id }
+          prepend_after_action do
+            track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params)
+          end
+          after_action do
+            remove_request_id
+          end
 
           def define_request_id
             request_id      = SecureRandom.uuid
@@ -23,8 +36,15 @@ module Flu
             ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
           end
 
+          def rejected_origin?(request)
+            rejected_user_agents  = Regexp.union(Flu.config.rejected_user_agents)
+            user_agent            = request.user_agent
+            matching_user_agents  = user_agent.match(rejected_user_agents)
+            !matching_user_agents.nil?
+          end
+
           def track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params)
-            if Flu::CoreExt.rejected_origin?(request)
+            if rejected_origin?(request)
               logger.warn "Origin user agent rejected: #{request.user_agent}"
             else
               tracked_request                 = event_factory.create_data_from_request(@flu_request_id,
@@ -40,13 +60,6 @@ module Flu
           end
         end
       end
-    end
-
-    def self.rejected_origin?(request)
-      rejected_user_agents  = Regexp.union(Flu.config.rejected_user_agents)
-      user_agent            = request.user_agent
-      matching_user_agents  = user_agent.match(rejected_user_agents)
-      !matching_user_agents.nil?
     end
   end
 end
