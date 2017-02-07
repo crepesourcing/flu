@@ -3,17 +3,31 @@ module Flu
     def self.extend_models(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
-          self.flu_is_tracked     = true
-          user_metadata_lambda    = options.fetch(:user_metadata, {})
-          user_metadata_on_create = user_metadata_lambda[:create]
-          user_metadata_on_update = user_metadata_lambda[:update]
-          ignored_model_changes   = options.fetch(:ignored_model_changes, []).map(&:to_s)
+          self.flu_is_tracked            = true
+          self.flu_user_metadata_lambdas = options.fetch(:user_metadata, {})
+          self.flu_ignored_model_changes = options.fetch(:ignored_model_changes, []).map(&:to_s)
 
-          after_create   { flu_track_entity_change(:create, changes, user_metadata_lambda[:create], event_factory, ignored_model_changes) }
-          after_update   { flu_track_entity_change(:update, changes, user_metadata_lambda[:update], event_factory, ignored_model_changes) }
-          after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, nil,            event_factory, ignored_model_changes) }
+          after_create   { flu_track_entity_change(:create, changes, event_factory) }
+          after_update   { flu_track_entity_change(:update, changes, event_factory) }
+          after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, event_factory) }
           after_commit   { flu_commit_changes(event_factory, event_publisher) }
           after_rollback { flu_rollback_changes }
+        end
+
+        def self.flu_ignored_model_changes=(ignored_model_changes)
+          @flu_ignored_model_changes = ignored_model_changes
+        end
+
+        def self.flu_ignored_model_changes
+          @flu_ignored_model_changes
+        end
+
+        def self.flu_user_metadata_lambdas=(user_metadata_lambdas)
+          @flu_user_metadata_lambdas = user_metadata_lambdas
+        end
+
+        def self.flu_user_metadata_lambdas
+          @flu_user_metadata_lambdas
         end
 
         def self.flu_is_tracked=(is_tracked)
@@ -50,23 +64,19 @@ module Flu
           flu_changes.clear
         end
 
-        def flu_track_entity_change(action_name,
-                                    changes,
-                                    user_metadata_lambda,
-                                    event_factory,
-                                    ignored_model_changes)
+        def flu_track_entity_change(action_name, changes, event_factory)
           unless changes.empty?
             foreign_keys = self.class.flu_foreign_keys do
               self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
             end
-            request_id   = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
-            data         = event_factory.create_data_from_entity_changes(action_name,
-                                                                         self,
-                                                                         request_id,
-                                                                         changes,
-                                                                         user_metadata_lambda,
-                                                                         foreign_keys,
-                                                                         ignored_model_changes)
+            request_id = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
+            data       = event_factory.create_data_from_entity_changes(action_name,
+                                                                       self,
+                                                                       request_id,
+                                                                       changes,
+                                                                       self.class.flu_user_metadata_lambdas[action_name],
+                                                                       foreign_keys,
+                                                                       self.class.flu_ignored_model_changes)
             flu_changes.push(data) unless data.nil?
           end
         end
