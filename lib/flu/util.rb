@@ -14,7 +14,7 @@ module Flu
           current_entity_index         = 0
           current_entity_type_index   += 1;
           foreign_keys                 = entity_type.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
-          user_metadata_lambda         = entity_type.flu_user_metadata_on_create
+          user_metadata_lambda         = entity_type.flu_user_metadata_lambdas[:create]
           ignored_model_changes        = entity_type.flu_ignored_model_changes
 
           entities.each do | entity |
