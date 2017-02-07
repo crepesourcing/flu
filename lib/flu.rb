@@ -40,10 +40,10 @@ module Flu
 
   def self.create_event_publisher(configuration)
     if is_testing_environment?
+      logger.info("Loading Flu with a dummy event publisher (this will not connect any exchange)")
       require_relative "flu/dummy/event_publisher_dummy"
       Flu::Dummy::EventPublisherDummy.new(@configuration)
     else
-      logger.info("Loading Flu with a dummy event publisher (this will not connect any exchange)")
       Flu::EventPublisher.new(@configuration)
     end
   end
