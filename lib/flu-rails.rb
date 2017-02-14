@@ -1,13 +1,13 @@
 require "logger"
 require "json"
-require_relative "flu/version"
-require_relative "flu/event"
-require_relative "flu/event_factory"
-require_relative "flu/queue_repository"
-require_relative "flu/configuration"
-require_relative "flu/core_ext"
-require_relative "flu/event_publisher"
-require_relative "flu/railtie" if defined?(Rails)
+require_relative "flu-rails/version"
+require_relative "flu-rails/event"
+require_relative "flu-rails/event_factory"
+require_relative "flu-rails/queue_repository"
+require_relative "flu-rails/configuration"
+require_relative "flu-rails/core_ext"
+require_relative "flu-rails/event_publisher"
+require_relative "flu-rails/railtie" if defined?(Rails)
 
 module Flu
   def self.configure
@@ -41,7 +41,7 @@ module Flu
   def self.create_event_publisher(configuration)
     if is_testing_environment?
       logger.info("Loading Flu with a dummy event publisher (this will not connect any exchange)")
-      require_relative "flu/dummy/event_publisher_dummy"
+      require_relative "flu-rails/dummy/event_publisher_dummy"
       Flu::Dummy::EventPublisherDummy.new(@configuration)
     else
       Flu::EventPublisher.new(@configuration)

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flu (0.1.2)
+    flu-rails (0.1.2)
       activesupport (>= 4.2.0)
       bunny (>= 2.5.0)
       rabbitmq_http_api_client (>= 1.6.0)
@@ -95,7 +95,7 @@ DEPENDENCIES
   actionpack (= 5.0.1)
   activerecord (= 5.0.1)
   bundler (>= 1.12.5)
-  flu!
+  flu-rails!
   rspec (= 3.5.0)
   sqlite3 (= 1.3.13)
 

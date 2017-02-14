@@ -8,5 +8,5 @@
 
 ```
   $ docker build . -t flu:test
-  $ docker run -v ./:/usr/src/app/ flu:test rspec spec
+  $ docker run -v `pwd`:/usr/src/app/ flu:test rspec spec
 ```

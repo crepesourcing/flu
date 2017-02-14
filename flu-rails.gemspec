@@ -1,13 +1,13 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "flu/version"
+require "flu-rails/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "flu"
+  spec.name          = "flu-rails"
   spec.version       = Flu::VERSION
-  spec.authors       = ["Lo\xC3\xAFc Vigneron"]
-  spec.email         = ["loic@spin42.com"]
+  spec.authors       = ["Lo\xC3\xAFc Vigneron, Lorent Lempereur, Thibault Poncelet"]
+  spec.email         = ["info@spin42.com"]
   spec.summary       = "Track your application events and publish them to RabbitMQ."
   spec.description   = "To be defined :)"
   spec.homepage      = ""
