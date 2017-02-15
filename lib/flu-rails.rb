@@ -7,6 +7,7 @@ require_relative "flu-rails/queue_repository"
 require_relative "flu-rails/configuration"
 require_relative "flu-rails/core_ext"
 require_relative "flu-rails/event_publisher"
+require_relative "flu-rails/util"
 require_relative "flu-rails/railtie" if defined?(Rails)
 
 module Flu
