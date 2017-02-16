@@ -2,7 +2,6 @@ module Flu
   class Configuration
     include ActiveSupport::Configurable
     config_accessor :development_environments
-    config_accessor :tracked_session_keys
     config_accessor :rejected_user_agents
     config_accessor :logger
     config_accessor :rabbitmq_host

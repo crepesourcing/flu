@@ -65,7 +65,6 @@ module Flu
   def self.load_configuration
     configure do |config|
       config.development_environments       = []
-      config.tracked_session_keys           = []
       config.rejected_user_agents           = []
       config.logger                         = ::Logger.new(STDOUT)
       config.rabbitmq_host                  = "localhost"
