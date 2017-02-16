@@ -33,13 +33,11 @@ Each configuration is detailed below.
 
 `flu-rails` will start automatically with `railties`.
 
-
 ## Requirements
 
 * Ruby 2.2
 * Tested with Rails 4 and 5
 * Tested with RabbitMQ 3.5.8
-
 
 ## Usage
 
@@ -115,6 +113,22 @@ class ApplicationController < ActionController::Base
   }
 ```
 
+### Create and emit an event manually
+
+Flu's components can be used programmatically to create and emit events manually
+
+  ```ruby
+  data = {
+    recipient_name: "Lazar",
+    recipient_email: "lazar@fourtytwo.net",
+    message: "Hi!"
+  }
+  kind = :manual
+  name = "send email"
+  event = Flu.event_factory.build_event(name, kind, data)
+  Flu.event_publisher.publish(event)
+  ```
+
 
 ## Overall configuration options
 
@@ -128,7 +142,6 @@ All options have a default value. However, all of them can be changed in your in
 | `rabbitmq_host` | `"localhost"` | String | Required | RabbitMQ exchange's host. | `"192.168.42.42"` |
 | `rabbitmq_port` | `"5672"` | String | Required | RabbitMQ exchange's port. | `"1234"` |
 | `rabbitmq_user` | `""` | String | Required | RabbitMQ exchange's username. | `"root"` |
-| `rabbitmq_password` | `""` | String | Required | RabbitMQ exchange's password. | `"pouet"` |
 | `rabbitmq_password` | `""` | String | Required | RabbitMQ exchange's password. | `"pouet"` |
 | `rabbitmq_exchange_name` | `"events"` | String | Required | RabbitMQ exchange's name. | `"myproject"` |
 | `rabbitmq_management_port` | `"15672"` | String | Optional | RabbitMQ exchange's management port. This port is used when `flu-rails` must access metadata information about queues, messages, etc. This port is important if you want to use an instance of `QueueRepository`. Not required for simple use cases. | `"4242"` |
