@@ -55,7 +55,7 @@ module Flu
         response_code:   response.status,
         user_agent:      request.user_agent,
         duration:        Time.zone.now - request_start_time,
-        params:          params.except(*ignored_request_params).except(*@default_ignored_request_params)
+        params:          params.except(*ignored_request_params).except(*@default_ignored_request_params).to_h
       }
     end
 
