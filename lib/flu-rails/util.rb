@@ -1,11 +1,11 @@
 module Flu
   module Util
     class ExportService
-      def export_existing_entities_to_events(event_publisher, event_factory)
-        check_that_all_entity_types_have_created_at
+      def export_existing_entities_to_events(event_publisher, event_factory, entity_types=nil)
+        entity_types ||= find_all_tracked_entity_types(entity_types)
+        check_that_all_entity_types_have_created_at(entity_types)
 
         Flu.logger.level             = Logger::WARN
-        entity_types                 = find_all_entity_types
         total_number_of_entity_types = entity_types.size
         current_entity_type_index    = 0
         entity_types.each do | entity_type |
@@ -30,10 +30,12 @@ module Flu
         end
       end
 
+      def
+
       private
 
-      def check_that_all_entity_types_have_created_at
-        entity_types_without_timestamp = find_all_entity_types.select do | entity_type |
+      def check_that_all_entity_types_have_created_at(entity_types)
+        entity_types_without_timestamp = entity_types.select do | entity_type |
           !entity_type.attribute_names.include?("created_at")
         end
         if (entity_types_without_timestamp.size > 0)
@@ -43,7 +45,11 @@ module Flu
 
       def find_all_entity_types
         Rails.application.eager_load!
-        ActiveRecord::Base.descendants.select do | entity_type |
+        ActiveRecord::Base.descendants
+      end
+
+      def find_all_tracked_entity_types(entity_types)
+        (entity_types || find_all_entity_types).select do | entity_type |
           ActiveRecord::Base.connection.table_exists?(entity_type.table_name) && entity_type.flu_is_tracked
         end
       end
