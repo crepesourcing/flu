@@ -30,8 +30,6 @@ module Flu
         end
       end
 
-      def
-
       private
 
       def check_that_all_entity_types_have_created_at(entity_types)
