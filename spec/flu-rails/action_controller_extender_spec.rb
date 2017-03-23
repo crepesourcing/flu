@@ -6,12 +6,28 @@ RSpec.describe Flu::ActionControllerExtender do
   let(:current_user) { OpenStruct.new(id: 14, name: "Michel")}
 
   context "#extend_controllers" do
+    it "track_requests is available on ActionController::Base classes" do
+      expect(ActionController::Base.methods).to include :track_requests
+    end
+
+    it "track_requests is available on ActionController::API classes" do
+      expect(ActionController::API.methods).to include :track_requests
+    end
+
+    it "track_requests is not available on non-controller classes" do
+      expect(PadawansController.methods).to_not include :track_requests
+    end
+
     it "DynastiesController's requests must not be tracked" do
       expect(DynastiesController.flu_is_tracked).to be false
     end
 
     it "NinjasController's requests must be tracked" do
       expect(NinjasController.flu_is_tracked).to be true
+    end
+
+    it "BerserksController's requests must be tracked" do
+      expect(BerserksController.flu_is_tracked).to be false
     end
 
     let (:dynasties_controller) { DynastiesController.new }

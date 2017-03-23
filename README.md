@@ -87,7 +87,7 @@ For instance:
 
 ### Track requests to a Rails Controller action
 
-All subclasses of `ActionController::Base` that call `track_requests` are "tracked". _E.g._:
+All subclasses of `ActionController::Base` or `ActionController::API` (Rails 5) that call `track_requests` are "tracked". _E.g._:
 
   ```ruby
   class ApplicationController < ActionController::Base
@@ -257,3 +257,4 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 ### Version 0.1.3
 
 * Support for polymorphic one-to-one associations
+* Support for `ActionController:API`

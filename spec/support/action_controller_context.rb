@@ -36,9 +36,15 @@ RSpec.shared_context "controllers defined", :shared_context => :metadata do
       track_requests user_metadata: lambda {
         {
           current_user_id: current_user ? current_user.id : nil,
-          client_id:       request.headers["Client-Id"],
+          client_id:       request.headers["Client-Id"]
         }
       }
+    end
+
+    class BerserksController < ActionController::API
+    end
+
+    class PadawansController
     end
   end
 
@@ -48,5 +54,5 @@ RSpec.shared_context "controllers defined", :shared_context => :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "controllers defined", :include_shared => true
+  rspec.include_context "controllers defined", include_shared: true
 end
