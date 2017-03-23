@@ -247,3 +247,13 @@ For instance, calling the action `destroy` of `CountryController` will emit this
   }
 }
 ```
+
+## Side-notes
+
+* `assocations` node contains `belongs_to` associations only.
+
+## Changelog
+
+### Version 0.1.3
+
+* Support for polymorphic one-to-one associations

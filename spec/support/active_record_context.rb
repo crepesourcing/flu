@@ -26,6 +26,16 @@ RSpec.shared_context "active records defined", :shared_context => :metadata do
         t.integer :weight
         t.timestamps
       end
+      create_table :berserks do |t|
+        t.string :name
+        t.timestamps
+      end
+      create_table :padawans do |t|
+        t.string  :name
+        t.integer :master_id
+        t.string  :master_type
+        t.timestamps
+      end
     end
 
     def self.init
@@ -56,6 +66,17 @@ RSpec.shared_context "active records defined", :shared_context => :metadata do
       }, ignored_model_changes: ["weight"]
 
       belongs_to :dynasty
+      has_one :padawan, as: :master, dependent: :nullify
+    end
+
+    class Berserk < ActiveRecord::Base
+      track_entity_changes
+      has_one :padawan, as: :master, dependent: :nullify
+    end
+
+    class Padawan < ActiveRecord::Base
+      track_entity_changes
+      belongs_to :master, polymorphic: true
     end
   end
 
@@ -67,5 +88,5 @@ RSpec.shared_context "active records defined", :shared_context => :metadata do
 end
 
 RSpec.configure do |rspec|
-  rspec.include_context "active records defined", :include_shared => true
+  rspec.include_context "active records defined", include_shared: true
 end

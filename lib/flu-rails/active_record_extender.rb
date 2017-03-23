@@ -38,8 +38,12 @@ module Flu
           @flu_is_tracked || false
         end
 
-        def self.flu_foreign_keys(&block)
-          @flu_foreign_keys ||= yield
+        def self.flu_association_columns
+          @flu_association_columns ||= reflect_on_all_associations(:belongs_to).flat_map do |association|
+            column_names = [association.foreign_key]
+            column_names.push(association.foreign_type) if association.polymorphic?
+            column_names
+          end
         end
 
         def flu_changes
@@ -49,7 +53,7 @@ module Flu
         def flu_commit_changes(event_factory, event_publisher)
           flu_changes.select do |data|
             !data[:changes].empty?
-          end.each do | data |
+          end.each do |data|
             event = event_factory.build_entity_change_event(data)
             event_publisher.publish(event)
           end
@@ -66,16 +70,13 @@ module Flu
 
         def flu_track_entity_change(action_name, changes, event_factory)
           unless changes.empty?
-            foreign_keys = self.class.flu_foreign_keys do
-              self.class.reflect_on_all_associations(:belongs_to).map { |association| association.foreign_key }
-            end
             request_id = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
             data       = event_factory.create_data_from_entity_changes(action_name,
                                                                        self,
                                                                        request_id,
                                                                        changes,
                                                                        self.class.flu_user_metadata_lambdas[action_name],
-                                                                       foreign_keys,
+                                                                       self.class.flu_association_columns,
                                                                        self.class.flu_ignored_model_changes)
             flu_changes.push(data) unless data.nil?
           end

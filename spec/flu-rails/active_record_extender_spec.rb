@@ -27,6 +27,35 @@ RSpec.describe Flu::ActiveRecordExtender do
       expect(Ninja.flu_is_tracked).to be true
     end
 
+    it "Berserk must be tracked" do
+      expect(Berserk.flu_is_tracked).to be true
+    end
+
+    it "Padawan must be tracked" do
+      expect(Padawan.flu_is_tracked).to be true
+    end
+
+    it "Padawan association columns should contain master_type (polymorphic association)" do
+      expect(Padawan.flu_association_columns).to include "master_type"
+    end
+
+    it "Padawan association columns should contain master_id" do
+      expect(Padawan.flu_association_columns).to include "master_id"
+    end
+
+    it "Berserk association columns should not contain padawan_id (has_one)" do
+      expect(Berserk.flu_association_columns).to_not include "padawan_id"
+    end
+
+    it "Ninja association columns should not contain padawan_id (has_one)" do
+      expect(Ninja.flu_association_columns).to_not include "padawan_id"
+    end
+
+    it "Ninja association columns should contain dynasty_id" do
+      expect(Ninja.flu_association_columns).to include "dynasty_id"
+    end
+    
+
     context "when saving a dynasty" do
       it "should not emit any event" do
         dynasty.save!
@@ -303,6 +332,81 @@ RSpec.describe Flu::ActiveRecordExtender do
         ninja3.save!
         expect(@event_publisher.events_count).to eq 3
         expect(@event_publisher.fetch_events("new.ninja_app.entity_change.create ninja").size).to eq 3
+      end
+    end
+
+    context "when saving a berserk's padawan" do
+      let (:berserk)        { Berserk.new(name: "cloclo") }
+      let (:padawan)        { Padawan.new(name: "pouyou", master: berserk) }
+      let (:berserk_events) { @event_publisher.fetch_events("new.ninja_app.entity_change.create berserk") }
+      let (:berserk_event)  { berserk_events.first }
+      let (:padawan_events) { @event_publisher.fetch_events("new.ninja_app.entity_change.create padawan") }
+      let (:padawan_event)  { padawan_events.first }
+
+      before(:each) do
+        berserk.save!
+        padawan.save!
+      end
+
+      it "should emit 2 events" do
+        expect(@event_publisher.events_count).to eq 2
+      end
+
+      it "should emit one event for 'create berserk'" do
+        expect(berserk_events.size).to eq 1
+      end
+
+      it "should emit one event for 'create padawan'" do
+        expect(padawan_events.size).to eq 1
+      end
+
+      it "should not had the padawan_id (has_one) to the 'create berserk' associations" do
+        expect(berserk_event.data["associations"]).to be_empty
+      end
+
+      it "should had the padawan_id (belongs_to) to the 'create berserk' associations" do
+        expect(padawan_event.data["associations"]["masterId"]).to eq berserk.id
+      end
+
+      it "should add berserk_type to the padawan event" do
+        expect(padawan_event.data["associations"]["masterType"]).to eq Berserk.name
+      end
+
+      context "when moving the padawan from the berserk to a ninja" do
+        let (:different_id_from_berserk) { berserk.id * 2 }
+        let (:ninja)                     { Ninja.new(id: different_id_from_berserk, dynasty: dynasty, name: "Jean Paul", color: :black, height: 160, weight: 60) }
+        let (:update_padawan_events)     { @event_publisher.fetch_events("new.ninja_app.entity_change.update padawan") }
+        let (:update_padawan_event)      { update_padawan_events.first }
+
+        before(:each) do
+          ninja.save!
+          padawan.master = ninja
+          padawan.save!
+        end
+
+        it "should emit one event for 'update padawan'" do
+          expect(update_padawan_events.size).to eq 1
+        end
+
+        it "should add old master id to the update padawan event" do
+          expect(update_padawan_event.data["changes"]["masterId"][0]).to eq berserk.id
+        end
+
+        it "should add new master id to the update padawan event" do
+          expect(update_padawan_event.data["changes"]["masterId"][1]).to eq ninja.id
+        end
+
+        it "should add old master type to the update padawan event" do
+          expect(update_padawan_event.data["changes"]["masterType"][0]).to eq Berserk.name
+        end
+
+        it "should add new master type to the update padawan event" do
+          expect(update_padawan_event.data["changes"]["masterType"][1]).to eq Ninja.name
+        end
+
+        it "should add ninja_type to the update padawan event" do
+          expect(update_padawan_event.data["associations"]["masterType"]).to eq Ninja.name
+        end
       end
     end
   end
