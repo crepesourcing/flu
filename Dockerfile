@@ -7,6 +7,5 @@ COPY Gemfile.lock /usr/src/app/
 COPY flu-rails.gemspec /usr/src/app/
 COPY lib/flu-rails/version.rb /usr/src/app/lib/flu-rails/
 RUN bundle install
-
 COPY . /usr/src/app
 RUN bundle install

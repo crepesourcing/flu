@@ -96,21 +96,37 @@ RSpec.describe Flu::EventFactory do
     end
     context "when data are valid" do
       let (:changes) { valid_changes }
+      before(:each) do
+        @event = factory.build_entity_change_event(data)
+      end
       it "should set a valid name" do
-        event = factory.build_entity_change_event(data)
-        expect(event.name).to eq "create invoice"
+        expect(@event.name).to eq "create invoice"
       end
       it "should set a valid kind" do
-        event = factory.build_entity_change_event(data)
-        expect(event.kind).to eq :entity_change
+        expect(@event.kind).to eq :entity_change
       end
       it "should set the emitter to the application name" do
-        event = factory.build_entity_change_event(data)
-        expect(event.emitter).to eq application_name
+        expect(@event.emitter).to eq application_name
       end
       it "should set a valid id" do
-        event = factory.build_entity_change_event(data)
-        expect(event.id).not_to be_nil
+        expect(@event.id).not_to be_nil
+      end
+    end
+    context "when data has invalid characters" do
+      let(:changes_with_invalid_characters) do
+        {
+          "month" => ["december", "\u0000novem\u0000be\u0000r"],
+          "price" => [4, 6],
+          "id"    => [nil, 1]
+        }
+      end
+      let(:changes) { changes_with_invalid_characters }
+      before(:each) do
+        @event = factory.build_entity_change_event(data)
+      end
+
+      it "removes the invalid character" do
+        expect(@event.data.dig("changes", "month")[1]).to eq("november")
       end
     end
   end
@@ -182,6 +198,30 @@ RSpec.describe Flu::EventFactory do
         expect(event.data).to eq expected_data
       end
     end
+
+
+    context "when data has invalid characters" do
+      let(:data_with_invalid_characters) do
+        {
+          action_name:     "create",
+          controller_name: "orders",
+          params:          {
+                             "price_value": 10,
+                             "user": "User3 1\u0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\u0000aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                           }
+        }
+      end
+      let(:data) { data_with_invalid_characters }
+      before(:each) do
+        @event = factory.build_request_event(data)
+      end
+
+      it "removes the invalid character" do
+        p @event.data
+        expect(@event.data.dig("params", "user")).to eq("User3 1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      end
+    end
+
     context "when data are valid" do
       it "should set a valid name" do
         event = factory.build_request_event(data)

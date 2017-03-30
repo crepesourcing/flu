@@ -68,11 +68,11 @@ module Flu
       when Hash
         value.keys.each do |k, v = value[k]|
           value.delete k
-          value[camelize(k.to_s, false)] = deep_camelize v
+          value[camelize(sanitize(k.to_s), false)] = deep_camelize v
         end
         value
       else
-        value
+        sanitize(value)
       end
     end
 
@@ -88,6 +88,14 @@ module Flu
       association_columns.reduce({}) do |associations, column_name|
         associations[column_name] = entity[column_name]
         associations
+      end
+    end
+
+    def sanitize(value)
+      if value.respond_to?(:encode)
+        value.encode("UTF-8", invalid: :replace, undef: :replace).delete("\u0000")
+      else
+        value
       end
     end
   end

@@ -254,6 +254,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.1.4
+
+* Prevent events to be published including an invalid Unicode character (such as `\u0000`)
+
 ### Version 0.1.3
 
 * Support for polymorphic one-to-one associations
