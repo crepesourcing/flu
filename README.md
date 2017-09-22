@@ -254,6 +254,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.1.5
+
+* Allow to use the EventFactory in non-rails environment
+
 ### Version 0.1.4
 
 * Prevent events to be published including an invalid Unicode character (such as `\u0000`)
