@@ -1,3 +1,5 @@
+require "active_support/configurable"
+
 module Flu
   class Configuration
     include ActiveSupport::Configurable

@@ -1,3 +1,6 @@
+require "securerandom"
+require_relative "event"
+
 module Flu
   class EventFactory
     def initialize(configuration)

@@ -1,4 +1,6 @@
 require "bunny"
+require_relative "event"
+
 
 module Flu
   class EventPublisher

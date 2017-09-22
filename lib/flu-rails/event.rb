@@ -1,3 +1,5 @@
+require "json"
+
 module Flu
   class Event
 
@@ -25,10 +27,10 @@ module Flu
     end
 
     def to_json(options=nil)
-      {
+      JSON.dump({
         meta: @meta,
         data: map_complex_object(@data)
-      }.to_json(options)
+      })
     end
 
     def id
