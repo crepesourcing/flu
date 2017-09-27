@@ -254,6 +254,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.1.7
+
+* Support for ActiveRecord >= 5.1
+
 ### Version 0.1.6
 
 * Allow to use the Event and the EventPublisher in non-rails environment
