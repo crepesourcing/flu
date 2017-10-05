@@ -416,6 +416,35 @@ RSpec.describe Flu::ActiveRecordExtender do
       end
     end
 
+    context "when publishing events programmatically" do
+      let(:daddy_ninja)        { Ninja.new(dynasty: dynasty, name: "Marcel",  color: :black,  height: 180, weight: 90) }
+
+      def add_custom_events(ninja)
+        ninja.flu_add_manual_event("custom", {})
+        ninja.flu_add_manual_event("event", {})
+      end
+      
+      before(:each) do
+        add_custom_events(daddy_ninja)
+        daddy_ninja.flu_publish_events!
+      end
+
+      it "flushes the events in the active record" do
+        expect(daddy_ninja.flu_changes.size).to eq 0
+      end
+
+      it "publishes the manual events" do
+        expect(@event_publisher.events_count).to eq 2
+      end
+
+      it "publishes events in the proper order" do
+        expect(@event_publisher.ordered_published_event_routing_keys).to eq [
+          "new.ninja_app.manual.custom",
+          "new.ninja_app.manual.event"
+        ]
+      end
+    end
+
     context "when saving ninjas in a transaction" do
       let(:daddy_ninja)        { Ninja.new(dynasty: dynasty, name: "Marcel",  color: :black,  height: 180, weight: 90) }
       let(:mommy_ninja)        { Ninja.new(dynasty: dynasty, name: "Ginette", color: :yellow, height: 160, weight: 60) }

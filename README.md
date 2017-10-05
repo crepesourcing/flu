@@ -266,6 +266,11 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+
+### Version 0.1.9
+
+* `publish_events!` allows to publish programmatically all the events that are stacked on an ActiveRecord
+
 ### Version 0.1.8
 
 * Events can be published manually according to a transactionnal context

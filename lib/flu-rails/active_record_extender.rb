@@ -6,7 +6,8 @@ module Flu
           self.flu_is_tracked            = true
           self.flu_user_metadata_lambdas = options.fetch(:user_metadata, {})
           self.flu_ignored_model_changes = options.fetch(:ignored_model_changes, []).map(&:to_s)
-          
+        
+
           after_create   { flu_track_entity_change(:create, flu_changes_depending_on_active_record_version, event_factory) }
           after_update   { flu_track_entity_change(:update, flu_changes_depending_on_active_record_version, event_factory) }
           after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, event_factory) }
@@ -54,6 +55,10 @@ module Flu
           @flu_changes ||= []
         end
 
+        def flu_publish_events!
+          run_callbacks(:commit)
+        end
+
         def flu_add_manual_event(name, data)
           raise "data must be a hash" if data.nil? || !data.is_a?(Hash)
           flu_changes.push({
@@ -63,15 +68,20 @@ module Flu
           })
         end
 
-        def flu_commit_changes(event_factory, event_publisher)
+        def flu_changes_as_events(event_factory)
           flu_changes.select do |data|
             !data[:changes].try(:empty?) || data[:flu_is_a_manual_event]
-          end.each do |data|
+          end.map do |data|
             if data[:flu_is_a_manual_event]
-              event = event_factory.build_manual_event(data[:name], data[:data])
+              event_factory.build_manual_event(data[:name], data[:data])
             else
-              event = event_factory.build_entity_change_event(data)
+              event_factory.build_entity_change_event(data)
             end
+          end
+        end
+
+        def flu_commit_changes(event_factory, event_publisher)
+          flu_changes_as_events(event_factory).each do |event|
             event_publisher.publish(event)
           end
           flu_flush_changes

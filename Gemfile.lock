@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    flu-rails (0.1.8)
+    flu-rails (0.1.9)
       activesupport (>= 4.2.0)
       bunny (>= 2.5.0)
       rabbitmq_http_api_client (>= 1.6.0)

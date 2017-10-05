@@ -36,7 +36,7 @@ module Flu
     def build_manual_event(name, data)
       raise ArgumentError, "data must not be nil"          if data.nil?
       raise ArgumentError, "data must be a hash"           if !data.is_a?(Hash)
-      raise ArgumentError, "name must not be nil or empty" if data.nil? || data.empty?
+      raise ArgumentError, "name must not be nil or empty" if name.nil? || name.empty?
       event = build_event(name.to_s, :manual, data)
       @logger.debug("Track manual: " + JSON.pretty_generate(event))
       event
