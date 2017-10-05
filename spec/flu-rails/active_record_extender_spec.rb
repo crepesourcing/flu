@@ -409,5 +409,84 @@ RSpec.describe Flu::ActiveRecordExtender do
         end
       end
     end
+
+    context "when adding a manuel event that is not a hash" do
+      it "raises an exception" do
+        expect { Ninja.new.flu_add_manual_event("custom name", "not a hash") }.to raise_error
+      end
+    end
+
+    context "when saving ninjas in a transaction" do
+      let(:daddy_ninja)        { Ninja.new(dynasty: dynasty, name: "Marcel",  color: :black,  height: 180, weight: 90) }
+      let(:mommy_ninja)        { Ninja.new(dynasty: dynasty, name: "Ginette", color: :yellow, height: 160, weight: 60) }
+      let(:mini_ninja)         { Ninja.new(dynasty: dynasty, name: "George",  color: :yellow, height: 50, weight: 15) }
+      let(:must_rollback)      { false }
+      let(:custom_event_data1) do
+        {
+          ladies: ["boss", "master"]
+        }
+      end
+      let(:custom_event_data2) do
+        {
+          enemy: "black ninja",
+          age:   42
+        }
+      end
+      let(:custom_event_name1) { "send pigeons to the ladies" }
+      let(:custom_event_name2) { "kill arch enemy" }
+
+      def add_custom_events(ninja)
+        ninja.flu_add_manual_event(custom_event_name1, custom_event_data1)
+        ninja.flu_add_manual_event(custom_event_name2, custom_event_data2)
+      end
+
+      before(:each) do
+        begin
+          Ninja.transaction do
+            daddy_ninja.save!
+            add_custom_events(daddy_ninja)
+            @after_custom_events_count = @event_publisher.events_count
+            mommy_ninja.save!
+            mini_ninja.save!
+            @before_commit_events_count = @event_publisher.events_count
+            raise "rollback" if must_rollback
+          end
+        rescue
+        end
+        @after_transaction_events = @event_publisher.events_count
+      end
+
+      context "when the transaction commits" do
+        let(:must_rollback) { false }
+        it "does not publish any event in the transaction" do
+          expect(@before_commit_events_count).to eq 0
+        end
+        it "does not publish any event when adding custom events" do
+          expect(@after_custom_events_count).to eq 0
+        end
+        it "publishes 5 events when committing" do
+          expect(@after_transaction_events).to eq 5
+        end
+        it "publishes events in the proper order" do
+          expect(@event_publisher.ordered_published_event_routing_keys).to eq [
+            "new.ninja_app.entity_change.create ninja",
+            "new.ninja_app.manual.#{custom_event_name1}",
+            "new.ninja_app.manual.#{custom_event_name2}",
+            "new.ninja_app.entity_change.create ninja",
+            "new.ninja_app.entity_change.create ninja"
+          ]
+        end
+      end
+
+      context "when the transaction rollbacks" do
+        let(:must_rollback) { true }
+        it "does not publish any event in the transaction" do
+          expect(@before_commit_events_count).to eq 0
+        end
+        it "does not publish any event after the transaction" do
+          expect(@after_transaction_events).to eq 0
+        end
+      end
+    end
   end
 end

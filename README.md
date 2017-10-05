@@ -36,7 +36,7 @@ Each configuration is detailed below.
 ## Requirements
 
 * Ruby 2.2
-* Tested with Rails 4 and 5
+* Tested with Rails 4 and 5.1
 * Tested with RabbitMQ 3.5.8
 
 ## Usage
@@ -128,6 +128,18 @@ Flu's components can be used programmatically to create and emit events manually
   event = Flu.event_factory.build_event(name, kind, data)
   Flu.event_publisher.publish(event)
   ```
+
+*Warning!* When calling Flu's `publisher` programmatically in a transaction, these events won't be published according to the transaction's commit. They will be published instantly, contrary to the `ActiveRecord` events that will be published when the transaction commits.
+If you want to publish events manually taking the transaction into account, please use the dedicated method `flu_add_manual_event(name: string, data: Hash)` (available on every `ActiveRecord` extended with `track_entity_changes`). For instance:
+```ruby
+Invoice.transaction do
+  invoice = Invoice.new
+  invoice.save!
+  invoice.flu_add_manual_event("a custom name", { some_data: true }) ## kind is :manual
+  Invoice.new.save!
+end
+```
+3 events will be published according to the following order: `entity_change.create invoice`, `manual.a custom name`, `entity_change.create_invoice`. 
 
 
 ## Overall configuration options
@@ -253,6 +265,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 * `assocations` node contains `belongs_to` associations only.
 
 ## Changelog
+
+### Version 0.1.8
+
+* Events can be published manually according to a transactionnal context
 
 ### Version 0.1.7
 

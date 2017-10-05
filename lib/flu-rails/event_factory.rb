@@ -33,6 +33,15 @@ module Flu
       event
     end
 
+    def build_manual_event(name, data)
+      raise ArgumentError, "data must not be nil"          if data.nil?
+      raise ArgumentError, "data must be a hash"           if !data.is_a?(Hash)
+      raise ArgumentError, "name must not be nil or empty" if data.nil? || data.empty?
+      event = build_event(name.to_s, :manual, data)
+      @logger.debug("Track manual: " + JSON.pretty_generate(event))
+      event
+    end
+
     def build_event(name, kind, data)
       Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data))
     end

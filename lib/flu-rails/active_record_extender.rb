@@ -54,11 +54,24 @@ module Flu
           @flu_changes ||= []
         end
 
+        def flu_add_manual_event(name, data)
+          raise "data must be a hash" if data.nil? || !data.is_a?(Hash)
+          flu_changes.push({
+            name: name,
+            data: data,
+            flu_is_a_manual_event: true
+          })
+        end
+
         def flu_commit_changes(event_factory, event_publisher)
           flu_changes.select do |data|
-            !data[:changes].empty?
+            !data[:changes].try(:empty?) || data[:flu_is_a_manual_event]
           end.each do |data|
-            event = event_factory.build_entity_change_event(data)
+            if data[:flu_is_a_manual_event]
+              event = event_factory.build_manual_event(data[:name], data[:data])
+            else
+              event = event_factory.build_entity_change_event(data)
+            end
             event_publisher.publish(event)
           end
           flu_flush_changes

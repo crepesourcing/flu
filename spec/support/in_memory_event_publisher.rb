@@ -1,18 +1,20 @@
 module Flu
   class InMemoryEventPublisher < EventPublisher
 
-    attr_reader :published_events_by_routing_key
+    attr_reader :published_events_by_routing_key, :ordered_published_event_routing_keys
 
     def initialize(configuration)
-      @logger                          = configuration.logger
-      @configuration                   = configuration
-      @published_events_by_routing_key = {}
+      @logger                               = configuration.logger
+      @configuration                        = configuration
+      @published_events_by_routing_key      = {}
+      @ordered_published_event_routing_keys = []
     end
 
     def publish(event, persistent=true)
       routing_key                                    = event.to_routing_key
       published_events_by_routing_key[routing_key] ||= []
       published_events_by_routing_key[routing_key].push(event)
+      @ordered_published_event_routing_keys.push(routing_key)
     end
 
     def connect
@@ -29,7 +31,8 @@ module Flu
     end
 
     def clear
-      @published_events_by_routing_key = {}
+      @published_events_by_routing_key      = {}
+      @ordered_published_event_routing_keys = []
     end
   end
 end
