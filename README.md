@@ -266,6 +266,9 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.2.0
+
+* Expose `InMemoryEventPublisher` for testing purpose
 
 ### Version 0.1.9
 

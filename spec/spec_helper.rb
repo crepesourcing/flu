@@ -4,7 +4,6 @@ require_relative "../lib/flu-rails"
 require_relative "support/rails_helper"
 require_relative "support/environment_helper"
 require_relative "support/queue_repository_stub"
-require_relative "support/in_memory_event_publisher"
 
 RSpec.configure do |config|
   config.include RailsHelper

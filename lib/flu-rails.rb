@@ -8,6 +8,7 @@ require_relative "flu-rails/configuration"
 require_relative "flu-rails/core_ext"
 require_relative "flu-rails/event_publisher"
 require_relative "flu-rails/util"
+require_relative "flu-rails/dummy/in_memory_event_publisher"
 require_relative "flu-rails/railtie" if defined?(Rails)
 
 module Flu
@@ -42,8 +43,8 @@ module Flu
   def self.create_event_publisher(configuration)
     if is_testing_environment?
       logger.info("Loading Flu with a dummy event publisher (this will not connect any exchange)")
-      require_relative "flu-rails/dummy/event_publisher_dummy"
-      Flu::Dummy::EventPublisherDummy.new(@configuration)
+      require_relative "flu-rails/dummy/in_memory_event_publisher"
+      Flu::Dummy::InMemoryEventPublisher.new(@configuration)
     else
       Flu::EventPublisher.new(@configuration)
     end

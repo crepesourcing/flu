@@ -6,7 +6,7 @@ RSpec.shared_context "controllers defined", :shared_context => :metadata do
   before(:all) do
     set_application_name("ninja_app")
     @event_factory   = Flu::EventFactory.new(Flu.config)
-    @event_publisher = Flu::InMemoryEventPublisher.new(Flu.config)
+    @event_publisher = Flu::Dummy::InMemoryEventPublisher.new(Flu.config)
     @logger          = Logger.new(STDOUT)
 
     Flu::ActionControllerExtender.extend_controllers(@event_factory, @event_publisher, @logger)

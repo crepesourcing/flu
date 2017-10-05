@@ -6,7 +6,7 @@ RSpec.shared_context "active records defined", :shared_context => :metadata do
   before(:all) do
     set_application_name("ninja_app")
     @event_factory   = Flu::EventFactory.new(Flu.config)
-    @event_publisher = Flu::InMemoryEventPublisher.new(Flu.config)
+    @event_publisher = Flu::Dummy::InMemoryEventPublisher.new(Flu.config)
     Flu::ActiveRecordExtender.extend_models(@event_factory, @event_publisher)
 
     ActiveRecord::Migration.verbose = false
