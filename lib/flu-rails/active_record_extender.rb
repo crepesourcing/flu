@@ -97,6 +97,8 @@ module Flu
 
         def flu_track_entity_change(action_name, changes, event_factory)
           unless changes.empty?
+            puts "flu_track_entity_change"
+            puts inspect
             request_id = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
             data       = event_factory.create_data_from_entity_changes(action_name,
                                                                        self,
