@@ -34,7 +34,9 @@ module Flu
             end
 
             def remove_request_id
-              ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
+              if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
+                ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
+              end
             end
 
             def rejected_origin?(request)
