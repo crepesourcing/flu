@@ -29,7 +29,7 @@ module Flu
 
             def define_request_id
               puts "define_request_id"
-              puts inspect
+              puts self.class.name
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
               ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME, proc { request_id })
@@ -37,7 +37,7 @@ module Flu
 
             def remove_request_id
               puts "remove_request_id"
-              puts inspect
+              puts self.class.name
               ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
             end
 
