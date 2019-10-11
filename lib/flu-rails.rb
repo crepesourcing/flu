@@ -78,7 +78,7 @@ module Flu
       config.auto_connect_to_exchange       = true
       config.default_ignored_model_changes  = [:password, :password_confirmation, :created_at, :updated_at]
       config.default_ignored_request_params = [:password, :password_confirmation, :controller, :action]
-      config.application_name               = defined?(Rails) ? Rails.application.class.parent_name.to_s.camelize : nil
+      config.application_name               = defined?(Rails) ? (Rails::VERSION::MAJOR >= 6 ? Rails.application.class.module_parent_name : Rails.application.class.parent_name).to_s.camelize : nil
     end
   end
 
