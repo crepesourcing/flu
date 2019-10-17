@@ -266,6 +266,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.3.1
+
+* Eager load with Zeitwerk when available
+
 ### Version 0.3.0
 
 * Support for Rails 6+
