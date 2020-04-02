@@ -19,14 +19,14 @@ RSpec.describe Flu do
 
     context "when Rails is not loaded" do
       context "when application_name is not explicitly set" do
-        xit "should raise an error" do
+        it "should raise an error" do
           reset_application_name
           expect { Flu.init }.to raise_error(RuntimeError)
         end
       end
 
       context "when application_name is explicitly set" do
-        xit "should set application_name from this value" do
+        it "should set application_name from this value" do
           set_application_name("flu_test")
           Flu.init
           expect(Flu.config.application_name).to eq "flu_test"

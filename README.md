@@ -266,6 +266,11 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.4.0
+
+* Drop support of Rails 5
+* Upgrade dependencies: `rabbitmq_http_api_client:1.13.0`, `activesupport:>=6.0.0`, `bunny:>=2.14.4`
+
 ### Version 0.3.1
 
 * Eager load with Zeitwerk when available

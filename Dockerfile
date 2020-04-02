@@ -1,4 +1,4 @@
-FROM ruby:2.3
+FROM ruby:2.6.5
 RUN mkdir -p /usr/src/app/lib/flu-rails
 WORKDIR /usr/src/app
 
