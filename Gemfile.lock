@@ -1,10 +1,10 @@
 PATH
   remote: .
   specs:
-    flu-rails (0.3.1)
-      activesupport (>= 6.0.0)
-      bunny (>= 2.14.4)
-      rabbitmq_http_api_client (>= 1.13.0)
+    flu-rails (0.4.0)
+      activesupport (~> 6.0, >= 6.0.0)
+      bunny (~> 2.14, >= 2.14.4)
+      rabbitmq_http_api_client (~> 1.13, >= 1.13.0)
 
 GEM
   remote: https://rubygems.org/
@@ -94,9 +94,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  actionpack (>= 6.0.0)
-  activerecord (>= 6.0.0)
-  bundler (>= 1.12.5)
+  actionpack (~> 6.0, >= 6.0.0)
+  activerecord (~> 6.0, >= 6.0.0)
+  bundler (~> 1.12, >= 1.12.5)
   byebug (= 11.1.1)
   flu-rails!
   rspec (= 3.9.0)
