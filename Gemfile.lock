@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     flu-rails (0.4.1)
-      activesupport (~> 6.0, >= 6.0.0)
+      activesupport (>= 6.0.0)
       bunny (~> 2.17, >= 2.17.0)
       rabbitmq_http_api_client (~> 1.14, >= 1.14.0)
 
@@ -98,8 +98,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  actionpack (~> 6.0, >= 6.0.0)
-  activerecord (~> 6.0, >= 6.0.0)
+  actionpack (>= 6.0.0)
+  activerecord (>= 6.0.0)
   bundler (~> 1.12, >= 1.12.5)
   byebug (= 11.1.1)
   flu-rails!
