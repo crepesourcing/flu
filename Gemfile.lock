@@ -67,7 +67,7 @@ GEM
       faraday_middleware (~> 1.0)
       hashie (~> 4.1)
       multi_json (~> 1.14, >= 1.14.1)
-    rack (2.2.2)
+    rack (2.2.3)
     rack-test (1.1.0)
       rack (>= 1.0, < 3)
     rails-dom-testing (2.0.3)
