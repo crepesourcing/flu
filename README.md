@@ -266,6 +266,10 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 
 ## Changelog
 
+### Version 0.4.1
+
+* Use of `rabbitmq_http_api_client:1.14.0`, which supports `faraday >= 1`
+
 ### Version 0.4.0
 
 * Drop support of Rails 5

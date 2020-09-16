@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "sqlite3",                     "1.4.2"
   spec.add_development_dependency "rspec",                       "3.9.0"
   spec.add_development_dependency "byebug",                      "11.1.1"
-  spec.add_dependency             "bunny",                       "~> 2.14", ">=2.14.4"
-  spec.add_dependency             "rabbitmq_http_api_client",    "~> 1.13", ">=1.13.0"
+  spec.add_dependency             "bunny",                       "~> 2.17", ">=2.17.0"
+  spec.add_dependency             "rabbitmq_http_api_client",    "~> 1.14", ">=1.14.0"
   spec.add_dependency             "activesupport",               "~> 6.0",  ">=6.0.0"
 end
