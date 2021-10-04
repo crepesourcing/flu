@@ -133,6 +133,11 @@ RSpec.describe Flu::ActiveRecordExtender do
         expect(event.data["requestId"]).to be_nil
       end
 
+      it "should emit an empty data -> request metadata" do
+        event = fetch_event_for_new_ninja
+        expect(event.data["requestMetadata"]).to be_empty
+      end
+
       it "should emit a valid data -> action name" do
         event = fetch_event_for_new_ninja
         expect(event.data["actionName"]).to eq :create
@@ -229,6 +234,11 @@ RSpec.describe Flu::ActiveRecordExtender do
             expect(event.data["requestId"]).to be_nil
           end
 
+          it "should emit an empty data -> request metadata" do
+            event = fetch_event_for_updated_ninja
+            expect(event.data["requestMetadata"]).to be_empty
+          end
+
           it "should emit a valid data -> action name" do
             event = fetch_event_for_updated_ninja
             expect(event.data["actionName"]).to eq :update
@@ -285,6 +295,11 @@ RSpec.describe Flu::ActiveRecordExtender do
           it "should emit a nil data -> request Id" do
             event = fetch_event_for_destroyed_ninja
             expect(event.data["requestId"]).to be_nil
+          end
+
+          it "should emit an empty data -> request metadata" do
+            event = fetch_event_for_destroyed_ninja
+            expect(event.data["requestMetadata"]).to be_empty
           end
 
           it "should emit a valid data -> action name" do

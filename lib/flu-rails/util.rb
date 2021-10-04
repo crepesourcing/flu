@@ -55,7 +55,7 @@ module Flu
 
       def extract_data_from(entity, event_factory, user_metadata_lambda, association_columns, ignored_model_changes)
         changes = create_changes_from_existing(entity)
-        event_factory.create_data_from_entity_changes(:create, entity, nil, changes, user_metadata_lambda, association_columns, ignored_model_changes)
+        event_factory.create_data_from_entity_changes(:create, entity, nil, nil, changes, user_metadata_lambda, association_columns, ignored_model_changes)
       end
 
       def create_changes_from_existing(entity)

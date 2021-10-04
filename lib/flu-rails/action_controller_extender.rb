@@ -12,12 +12,14 @@ module Flu
           end 
 
           define_singleton_method(:track_requests) do |options = {}|
-            self.flu_is_tracked    = true
-            user_metadata_lambda   = options[:user_metadata]
-            ignored_request_params = options.fetch(:ignored_request_params, []).map(&:to_sym)
+            self.flu_is_tracked      = true
+            user_metadata_lambda     = options[:user_metadata]
+            entity_metadata_lambda   = options[:entity_metadata]
+            ignored_request_params   = options.fetch(:ignored_request_params, []).map(&:to_sym)
 
             before_action do
               define_request_id
+              define_request_entity_metadata_lambda(entity_metadata_lambda)
               @request_start_time = Time.zone.now
             end
             prepend_after_action do
@@ -25,6 +27,7 @@ module Flu
             end
             after_action do
               remove_request_id
+              remove_request_entity_metadata_lambda
             end
 
             def define_request_id
@@ -36,6 +39,16 @@ module Flu
             def remove_request_id
               if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
                 ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
+              end
+            end
+
+            def define_request_entity_metadata_lambda(entity_metadata_lambda)
+              ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME, proc { entity_metadata_lambda })
+            end
+
+            def remove_request_entity_metadata_lambda
+              if respond_to?(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) 
+                ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME)
               end
             end
 

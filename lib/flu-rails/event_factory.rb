@@ -46,15 +46,16 @@ module Flu
       Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data))
     end
 
-    def create_data_from_entity_changes(action_name, entity, request_id, changes, user_metadata_lambda, association_columns, ignored_model_changes)
+    def create_data_from_entity_changes(action_name, entity, request_id, request_entity_metadata, changes, user_metadata_lambda, association_columns, ignored_model_changes)
       {
-        entity_id:     entity.id,
-        entity_name:   entity.class.name.underscore,
-        request_id:    request_id,
-        action_name:   action_name,
-        changes:       changes.except(*ignored_model_changes).except(*@default_ignored_model_changes),
-        user_metadata: user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
-        associations:  extract_associations_from(entity, association_columns)
+        entity_id:        entity.id,
+        entity_name:      entity.class.name.underscore,
+        request_id:       request_id,
+        request_metadata: request_entity_metadata.nil? ? {} : request_entity_metadata,
+        action_name:      action_name,
+        changes:          changes.except(*ignored_model_changes).except(*@default_ignored_model_changes),
+        user_metadata:    user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
+        associations:     extract_associations_from(entity, association_columns)
       }
     end
 

@@ -18,13 +18,13 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
 
-  spec.add_development_dependency "bundler",                     "~> 1.12", ">=1.12.5"
+  spec.add_development_dependency "bundler",                     "~> 1.17", ">=1.17.2"
   spec.add_development_dependency "activerecord",                ">=6.0.0"
   spec.add_development_dependency "actionpack",                  ">=6.0.0"
   spec.add_development_dependency "sqlite3",                     "1.4.2"
-  spec.add_development_dependency "rspec",                       "3.9.0"
-  spec.add_development_dependency "byebug",                      "11.1.1"
-  spec.add_dependency             "bunny",                       "~> 2.17", ">=2.17.0"
-  spec.add_dependency             "rabbitmq_http_api_client",    "~> 1.14", ">=1.14.0"
+  spec.add_development_dependency "rspec",                       "3.10.0"
+  spec.add_development_dependency "byebug",                      "11.1.3"
+  spec.add_dependency             "bunny",                       "~> 2.19", ">=2.19.0"
+  spec.add_dependency             "rabbitmq_http_api_client",    "~> 2.0", ">=2.0.0"
   spec.add_dependency             "activesupport",               ">=6.0.0"
 end

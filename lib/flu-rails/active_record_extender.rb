@@ -97,14 +97,17 @@ module Flu
 
         def flu_track_entity_change(action_name, changes, event_factory)
           unless changes.empty?
-            request_id = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
-            data       = event_factory.create_data_from_entity_changes(action_name,
-                                                                       self,
-                                                                       request_id,
-                                                                       changes,
-                                                                       self.class.flu_user_metadata_lambdas[action_name],
-                                                                       self.class.flu_association_columns,
-                                                                       self.class.flu_ignored_model_changes)
+            request_id                     = respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ID_METHOD_NAME) : nil
+            request_entity_metadata_lambda = respond_to?(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) ? send(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) : nil
+            request_entity_metadata        = request_entity_metadata_lambda.nil? ? nil : request_entity_metadata_lambda.call()
+            data                           = event_factory.create_data_from_entity_changes(action_name,
+                                                                                           self,
+                                                                                           request_id,
+                                                                                           request_entity_metadata,
+                                                                                           changes,
+                                                                                           self.class.flu_user_metadata_lambdas[action_name],
+                                                                                           self.class.flu_association_columns,
+                                                                                           self.class.flu_ignored_model_changes)
             flu_changes.push(data) unless data.nil?
           end
         end
