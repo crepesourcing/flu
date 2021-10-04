@@ -3,9 +3,6 @@ require_relative "action_controller_extender"
 
 module Flu
   class CoreExt
-    REQUEST_ID_METHOD_NAME              = "flu_tracker_request_id"
-    REQUEST_ENTITY_METADATA_METHOD_NAME = "flu_tracker_request_entity_metadata"
-
     def self.extend_model_classes(event_factory, event_publisher)
       ActiveRecordExtender.extend_models(event_factory, event_publisher)
     end

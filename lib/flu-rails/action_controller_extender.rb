@@ -34,30 +34,21 @@ module Flu
             end
 
             def define_request_id
-              byebug
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
               Flu::ControllerContext.flu_tracker_request_id = request_id
-              # ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME, proc { request_id })
             end
 
             def remove_request_id
               Flu::ControllerContext.flu_tracker_request_id = nil
-              # if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
-              #   ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
-              # end
             end
 
             def define_request_entity_metadata_lambda(entity_metadata_lambda)
               Flu::ControllerContext.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
-              # ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME, proc { entity_metadata_lambda })
             end
 
             def remove_request_entity_metadata_lambda
               Flu::ControllerContext.flu_tracker_request_entity_metadata = nil
-              # if respond_to?(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) 
-              #   ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME)
-              # end
             end
 
             def rejected_origin?(request)
