@@ -100,6 +100,7 @@ All subclasses of `ActionController::Base` or `ActionController::API` (Rails 5) 
 | Option | Default Value | Type | Required? | Description  | Example |
 | ---- | ----- | ------ | ----- | ------ | ----- |
 | `user_metadata` | `nil`| Lambda that returns a hash | Optional | This lambda is executed in each controller action to create an additional event attribute: `user_metadata`. | `lambda { {id: 4}}` |
+| `entity` | `nil`| Lambda that returns a hash | Optional | This lambda is executed in each controller action to attach a hash to every `entity_change` event related to it as an attribute named: `request_metadata`. | `lambda { {path: request.path}}` |
 
 For instance,
 
@@ -265,6 +266,11 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 * `assocations` node contains `belongs_to` associations only.
 
 ## Changelog
+
+### Version 0.4.2
+
+* Add capability to add request metadata in the entity_change events related to the request
+* Upgrade `rabbitmq_http_api_client`to `2.0`, bunny to `2.19`
 
 ### Version 0.4.1
 

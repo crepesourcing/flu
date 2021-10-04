@@ -12,16 +12,21 @@ module Flu
           end 
 
           define_singleton_method(:track_requests) do |options = {}|
-            self.flu_is_tracked    = true
-            user_metadata_lambda   = options[:user_metadata]
-            ignored_request_params = options.fetch(:ignored_request_params, []).map(&:to_sym)
+            self.flu_is_tracked      = true
+            user_metadata_lambda     = options[:user_metadata]
+            entity_metadata_lambda   = options[:entity_metadata]
+            ignored_request_params   = options.fetch(:ignored_request_params, []).map(&:to_sym)
 
             before_action do
               define_request_id
               @request_start_time = Time.zone.now
             end
+            prepend_before_action do
+              define_request_entity_metadata_lambda(entity_metadata_lambda)
+            end
             prepend_after_action do
               track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params)
+              remove_request_entity_metadata_lambda
             end
             after_action do
               remove_request_id
@@ -30,13 +35,19 @@ module Flu
             def define_request_id
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
-              ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME, proc { request_id })
+              Flu::CoreExt.flu_tracker_request_id = request_id
             end
 
             def remove_request_id
-              if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
-                ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
-              end
+              Flu::CoreExt.flu_tracker_request_id = nil
+            end
+
+            def define_request_entity_metadata_lambda(entity_metadata_lambda)
+              Flu::CoreExt.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
+            end
+
+            def remove_request_entity_metadata_lambda
+              Flu::CoreExt.flu_tracker_request_entity_metadata = nil
             end
 
             def rejected_origin?(request)
