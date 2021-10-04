@@ -1,3 +1,4 @@
+require_relative "./controller_context"
 module Flu
   class ActionControllerExtender
     def self.extend_controllers(event_factory, event_publisher, logger)
@@ -19,37 +20,44 @@ module Flu
 
             before_action do
               define_request_id
-              define_request_entity_metadata_lambda(entity_metadata_lambda)
               @request_start_time = Time.zone.now
+            end
+            prepend_before_action do
+              define_request_entity_metadata_lambda(entity_metadata_lambda)
             end
             prepend_after_action do
               track_requests(event_factory, event_publisher, user_metadata_lambda, ignored_request_params)
+              remove_request_entity_metadata_lambda
             end
             after_action do
               remove_request_id
-              remove_request_entity_metadata_lambda
             end
 
             def define_request_id
+              byebug
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
-              ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME, proc { request_id })
+              Flu::ControllerContext.flu_tracker_request_id = request_id
+              # ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME, proc { request_id })
             end
 
             def remove_request_id
-              if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
-                ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
-              end
+              Flu::ControllerContext.flu_tracker_request_id = nil
+              # if respond_to?(Flu::CoreExt::REQUEST_ID_METHOD_NAME) 
+              #   ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ID_METHOD_NAME)
+              # end
             end
 
             def define_request_entity_metadata_lambda(entity_metadata_lambda)
-              ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME, proc { entity_metadata_lambda })
+              Flu::ControllerContext.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
+              # ActiveRecord::Base.send(:define_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME, proc { entity_metadata_lambda })
             end
 
             def remove_request_entity_metadata_lambda
-              if respond_to?(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) 
-                ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME)
-              end
+              Flu::ControllerContext.flu_tracker_request_entity_metadata = nil
+              # if respond_to?(Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME) 
+              #   ActiveRecord::Base.send(:remove_method, Flu::CoreExt::REQUEST_ENTITY_METADATA_METHOD_NAME)
+              # end
             end
 
             def rejected_origin?(request)

@@ -270,7 +270,7 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 ### Version 0.4.2
 
 * Add capability to add request metadata in the entity_change events related to the request
-* Upgrade `rabbitmq_http_api_client`to `2.0.0`
+* Upgrade `rabbitmq_http_api_client`to `2.0`, bunny to `2.19`
 
 ### Version 0.4.1
 
