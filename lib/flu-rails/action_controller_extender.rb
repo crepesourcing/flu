@@ -35,19 +35,19 @@ module Flu
             def define_request_id
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
-              Flu::ActionControllerContext.flu_tracker_request_id = request_id
+              Flu::CoreExt.flu_tracker_request_id = request_id
             end
 
             def remove_request_id
-              Flu::ActionControllerContext.flu_tracker_request_id = nil
+              Flu::CoreExt.flu_tracker_request_id = nil
             end
 
             def define_request_entity_metadata_lambda(entity_metadata_lambda)
-              Flu::ActionControllerContext.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
+              Flu::CoreExt.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
             end
 
             def remove_request_entity_metadata_lambda
-              Flu::ActionControllerContext.flu_tracker_request_entity_metadata = nil
+              Flu::CoreExt.flu_tracker_request_entity_metadata = nil
             end
 
             def rejected_origin?(request)
