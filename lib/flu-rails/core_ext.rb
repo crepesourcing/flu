@@ -10,5 +10,21 @@ module Flu
     def self.extend_controller_classes(event_factory, event_publisher, logger)
       ActionControllerExtender.extend_controllers(event_factory, event_publisher, logger)
     end
+
+    def self.flu_tracker_request_id=(value)
+      Thread.current[:flu_tracker_request_id] = value
+    end
+
+    def self.flu_tracker_request_id
+      Thread.current[:flu_tracker_request_id]
+    end
+
+    def self.flu_tracker_request_entity_metadata=(value)
+      Thread.current[:flu_tracker_request_entity_metadata] = value
+    end
+
+    def self.flu_tracker_request_entity_metadata
+      Thread.current[:flu_tracker_request_entity_metadata]
+    end
   end
 end

@@ -1,4 +1,3 @@
-require_relative "./controller_context"
 module Flu
   class ActionControllerExtender
     def self.extend_controllers(event_factory, event_publisher, logger)
@@ -36,19 +35,19 @@ module Flu
             def define_request_id
               request_id      = SecureRandom.uuid
               @flu_request_id = request_id
-              Flu::ControllerContext.flu_tracker_request_id = request_id
+              Flu::ActionControllerContext.flu_tracker_request_id = request_id
             end
 
             def remove_request_id
-              Flu::ControllerContext.flu_tracker_request_id = nil
+              Flu::ActionControllerContext.flu_tracker_request_id = nil
             end
 
             def define_request_entity_metadata_lambda(entity_metadata_lambda)
-              Flu::ControllerContext.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
+              Flu::ActionControllerContext.flu_tracker_request_entity_metadata = instance_exec(&entity_metadata_lambda) if entity_metadata_lambda
             end
 
             def remove_request_entity_metadata_lambda
-              Flu::ControllerContext.flu_tracker_request_entity_metadata = nil
+              Flu::ActionControllerContext.flu_tracker_request_entity_metadata = nil
             end
 
             def rejected_origin?(request)

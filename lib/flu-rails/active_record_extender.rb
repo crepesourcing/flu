@@ -1,4 +1,3 @@
-require_relative "./controller_context"
 module Flu
   class ActiveRecordExtender
     def self.extend_models(event_factory, event_publisher)
@@ -98,8 +97,8 @@ module Flu
 
         def flu_track_entity_change(action_name, changes, event_factory)
           unless changes.empty?
-            request_id                     = Flu::ControllerContext.flu_tracker_request_id
-            request_entity_metadata        = Flu::ControllerContext.flu_tracker_request_entity_metadata
+            request_id                     = Flu::CoreExt.flu_tracker_request_id
+            request_entity_metadata        = Flu::CoreExt.flu_tracker_request_entity_metadata
             data                           = event_factory.create_data_from_entity_changes(action_name,
                                                                                            self,
                                                                                            request_id,
