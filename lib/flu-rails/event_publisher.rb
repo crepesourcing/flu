@@ -32,11 +32,15 @@ module Flu
     private
 
     def connect_to_exchange
-      @connection = Bunny.new(host:     @configuration.rabbitmq_host,
-                              port:     @configuration.rabbitmq_port,
-                              user:     @configuration.rabbitmq_user,
-                              password: @configuration.rabbitmq_password,
-                              automatically_recover: true)
+      options = {
+        host:     @configuration.rabbitmq_host,
+        port:     @configuration.rabbitmq_port,
+        user:     @configuration.rabbitmq_user,
+        password: @configuration.rabbitmq_password,
+        automatically_recover: true
+      }.merge(@configuration.bunny_options || {})
+      
+      @connection = Bunny.new(options)
       @connection.start
       @channel  = @connection.create_channel
       @exchange = @channel.send(:topic,

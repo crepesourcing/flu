@@ -7,6 +7,7 @@ module Flu
     config_accessor :rejected_user_agents
     config_accessor :logger
     config_accessor :rabbitmq_host
+    config_accessor :rabbitmq_management_scheme
     config_accessor :rabbitmq_management_port
     config_accessor :rabbitmq_port
     config_accessor :rabbitmq_user
@@ -17,5 +18,6 @@ module Flu
     config_accessor :default_ignored_model_changes
     config_accessor :default_ignored_request_params
     config_accessor :application_name
+    config_accessor :bunny_options
   end
 end

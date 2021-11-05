@@ -149,20 +149,22 @@ All options have a default value. However, all of them can be changed in your in
 
 | Option | Default Value | Type | Required? | Description  | Example |
 | ---- | ----- | ------ | ----- | ------ | ----- |
-| `development_environments` | `[]`| Array of strings | Optional | If `Rails.env` matches one of these values then no connection is attempted to the exchange (messages are created by not published to any exchange).  | `["test", "development"]` |
+| `development_environments` | `[]`| Array of strings | Optional | If `Rails.env` matches one of these values then no connection is attempted to the exchange (messages are created by not published to any exchange).  | `["test", "development"]` |
 | `rejected_user_agents` | `[]`| Array of regexp | Optional | When calling a controller action, an event can be prevented from being emitted if the request's `user_agent` matches a regular expression. This option is a list of regular expressions.| `[/[^\(]*[^\)]Chrome\//]`|
-| `logger` | `Logger.new(STDOUT)`| Logger | Optional | The logger used by `flu-rails` | `Rails.logger` | 
+| `logger` | `Logger.new(STDOUT)`| Logger | Optional | The logger used by `flu-rails` | `Rails.logger` | 
 | `rabbitmq_host` | `"localhost"` | String | Required | RabbitMQ exchange's host. | `"192.168.42.42"` |
 | `rabbitmq_port` | `"5672"` | String | Required | RabbitMQ exchange's port. | `"1234"` |
 | `rabbitmq_user` | `""` | String | Required | RabbitMQ exchange's username. | `"root"` |
 | `rabbitmq_password` | `""` | String | Required | RabbitMQ exchange's password. | `"pouet"` |
 | `rabbitmq_exchange_name` | `"events"` | String | Required | RabbitMQ exchange's name. | `"myproject"` |
+| `rabbitmq_management_scheme` | `"http"` | String | Required | RabbitMQ exchange's management scheme. This scheme is used when `happn` must access metadata information about queues, messages, etc. This port is used to create/delete bindings between the queue and its exchange. | `"https"` |
 | `rabbitmq_management_port` | `"15672"` | String | Optional | RabbitMQ exchange's management port. This port is used when `flu-rails` must access metadata information about queues, messages, etc. This port is important if you want to use an instance of `QueueRepository`. Not required for simple use cases. | `"4242"` |
 | `rabbitmq_exchange_durable` | `true` | Boolean | Optional | Make the RabbitMQ's exchange durable or not. From RabbitMQ's [documentation](https://www.rabbitmq.com/tutorials/amqp-concepts.html#exchanges): _"Durable exchanges survive broker restart whereas transient exchanges do not (they have to be redeclared when broker comes back online)."_ | `false` |
-| `auto_connect_to_exchange` | `true`| Boolean | Optional | Thanks to `Railties`, `flu-rails` starts automatically when the Rails app boots. However, this can be useful to not connect RabbitMQ at start up. To do so, set `auto_connect_to_exchange` to `false`.  | `false` |
-| `default_ignored_model_changes` | `[:password, :password_confirmation, :created_at, :updated_at]` | Boolean | Optional | By default, all these attributes will be ignored from model changes when creating an event. For instance, this means that timestamp fields (`created_at` and `updated_at`) are not monitored when they change. | `[]` |
-| `default_ignored_request_params` | `[:password, :password_confirmation, :controller, :action]` | Boolean | Optional | By default, all these parameters will be ignored from controller request's `params` when creating an event. | `false` |
-| `application_name` | `Rails.application.class.parent_name.to_s.camelize` | String | Required | Is used as `emitter` for each event created by `flu-rails`. | `my_app` |
+| `auto_connect_to_exchange` | `true`| Boolean | Optional | Thanks to `Railties`, `flu-rails` starts automatically when the Rails app boots. However, this can be useful to not connect RabbitMQ at start up. To do so, set `auto_connect_to_exchange` to `false`.  | `false` |
+| `default_ignored_model_changes` | `[:password, :password_confirmation, :created_at, :updated_at]` | Boolean | Optional | By default, all these attributes will be ignored from model changes when creating an event. For instance, this means that timestamp fields (`created_at` and `updated_at`) are not monitored when they change. | `[]` |
+| `default_ignored_request_params` | `[:password, :password_confirmation, :controller, :action]` | Boolean | Optional | By default, all these parameters will be ignored from controller request's `params` when creating an event. | `false` |
+| `application_name` | `Rails.application.class.parent_name.to_s.camelize` | String | Required | Is used as `emitter` for each event created by `flu-rails`. | `my_app` |
+| `bunny_options` | `{}` | Hash of symbols | Optional | Additional options to add when connecting the RabbitMQ broker. This overrides the existing options with the same name. | `{ verify_peer: true }` |
 
 ## How to execute tests
 
@@ -264,60 +266,3 @@ For instance, calling the action `destroy` of `CountryController` will emit this
 ## Side-notes
 
 * `assocations` node contains `belongs_to` associations only.
-
-## Changelog
-
-### Version 0.4.2
-
-* Add capability to add request metadata in the entity_change events related to the request
-* Upgrade `rabbitmq_http_api_client`to `2.0`, bunny to `2.19`
-
-### Version 0.4.1
-
-* Use of `rabbitmq_http_api_client:1.14.0`, which supports `faraday >= 1`
-
-### Version 0.4.0
-
-* Drop support of Rails 5
-* Upgrade dependencies: `rabbitmq_http_api_client:1.13.0`, `activesupport:>=6.0.0`, `bunny:>=2.14.4`
-
-### Version 0.3.1
-
-* Eager load with Zeitwerk when available
-
-### Version 0.3.0
-
-* Support for Rails 6+
-
-### Version 0.2.0
-
-* Expose `InMemoryEventPublisher` for testing purpose
-
-### Version 0.1.9
-
-* `publish_events!` allows to publish programmatically all the events that are stacked on an ActiveRecord
-
-### Version 0.1.8
-
-* Events can be published manually according to a transactionnal context
-
-### Version 0.1.7
-
-* Support for ActiveRecord >= 5.1
-
-### Version 0.1.6
-
-* Allow to use the Event and the EventPublisher in non-rails environment
-
-### Version 0.1.5
-
-* Allow to use the EventFactory in non-rails environment
-
-### Version 0.1.4
-
-* Prevent events to be published including an invalid Unicode character (such as `\u0000`)
-
-### Version 0.1.3
-
-* Support for polymorphic one-to-one associations
-* Support for `ActionController:API`
