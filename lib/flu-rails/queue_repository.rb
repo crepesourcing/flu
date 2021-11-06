@@ -31,7 +31,7 @@ module Flu
     private
 
     def create_management_client(configuration)
-      rabbitmq_url = "http://#{configuration.rabbitmq_host}:#{configuration.rabbitmq_management_port}/"
+      rabbitmq_url = "#{configuration.rabbitmq_management_scheme || "http"}://#{configuration.rabbitmq_host}:#{configuration.rabbitmq_management_port}/"
       RabbitMQ::HTTP::Client.new(rabbitmq_url,
                                  username: configuration.rabbitmq_user,
                                  password: configuration.rabbitmq_password)
