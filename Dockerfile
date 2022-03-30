@@ -1,5 +1,8 @@
-FROM ruby:2.6.5
-RUN mkdir -p /usr/src/app/lib/flu-rails
+FROM ruby:2.7.5-slim-bullseye
+
+RUN apt-get update -qq && apt-get install -y build-essential git ruby-dev libsqlite3-dev && apt-get clean && \
+  mkdir -p /usr/src/app/lib/flu-rails
+
 WORKDIR /usr/src/app
 
 COPY Gemfile /usr/src/app/
