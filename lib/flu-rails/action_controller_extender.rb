@@ -54,7 +54,7 @@ module Flu
             def rejected_origin?(request)
               rejected_user_agents  = Regexp.union(Flu.config.rejected_user_agents)
               user_agent            = request.user_agent
-              matching_user_agents  = user_agent.match(rejected_user_agents)
+              matching_user_agents  = user_agent&.match(rejected_user_agents)
               !matching_user_agents.nil?
             end
 
