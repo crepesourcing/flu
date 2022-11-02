@@ -16,7 +16,6 @@ module Flu
       raise ArgumentError, "data must have an action_name"     if !data.has_key?(:action_name) || data[:action_name].empty?
       raise ArgumentError, "data must have an controller_name" if !data.has_key?(:controller_name) || data[:controller_name].empty?
       name  = "request to #{data[:action_name]} #{data[:controller_name]}"
-      data  = deep_camelize(data)
       event = build_event(name, :request, data)
       @logger.debug("Track action: #{JSON.pretty_generate(event)}")
       event
@@ -43,19 +42,23 @@ module Flu
     end
 
     def build_event(name, kind, data)
-      Event.new(SecureRandom.uuid, @emitter, kind, name, deep_camelize(data))
+      original_emitter  = @emitter
+      overriden_emitter = data[:overriden_emitter]&.strip&.delete(".")
+      final_emitter     = overriden_emitter.blank? ? original_emitter : overriden_emitter
+      Event.new(SecureRandom.uuid, final_emitter, kind, name, deep_camelize(data))
     end
 
-    def create_data_from_entity_changes(action_name, entity, request_id, request_entity_metadata, changes, user_metadata_lambda, association_columns, ignored_model_changes)
+    def create_data_from_entity_changes(action_name, entity, request_id, request_entity_metadata, changes, user_metadata_lambda, association_columns, ignored_model_changes, flu_overriden_emitter_lambda)
       {
-        entity_id:        entity.id,
-        entity_name:      entity.class.name.underscore,
-        request_id:       request_id,
-        request_metadata: request_entity_metadata.nil? ? {} : request_entity_metadata,
-        action_name:      action_name,
-        changes:          changes.except(*ignored_model_changes).except(*@default_ignored_model_changes),
-        user_metadata:    user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
-        associations:     extract_associations_from(entity, association_columns)
+        entity_id:         entity.id,
+        entity_name:       entity.class.name.underscore,
+        overriden_emitter: flu_overriden_emitter_lambda ? entity.instance_exec(&flu_overriden_emitter_lambda) : nil,
+        request_id:        request_id,
+        request_metadata:  request_entity_metadata.nil? ? {} : request_entity_metadata,
+        action_name:       action_name,
+        changes:           changes.except(*ignored_model_changes).except(*@default_ignored_model_changes),
+        user_metadata:     user_metadata_lambda ? entity.instance_exec(&user_metadata_lambda) : {},
+        associations:      extract_associations_from(entity, association_columns)
       }
     end
 

@@ -355,7 +355,7 @@ RSpec.describe Flu::ActiveRecordExtender do
       let (:padawan)        { Padawan.new(name: "pouyou", master: berserk) }
       let (:berserk_events) { @event_publisher.fetch_events("new.ninja_app.entity_change.create berserk") }
       let (:berserk_event)  { berserk_events.first }
-      let (:padawan_events) { @event_publisher.fetch_events("new.ninja_app.entity_change.create padawan") }
+      let (:padawan_events) { @event_publisher.fetch_events("new.star-wars application.entity_change.create padawan") }
       let (:padawan_event)  { padawan_events.first }
 
       before(:each) do
@@ -387,10 +387,14 @@ RSpec.describe Flu::ActiveRecordExtender do
         expect(padawan_event.data["associations"]["masterType"]).to eq Berserk.name
       end
 
+      it "should set the overriden emitter on the Padawan event" do
+        expect(padawan_event.emitter).to eq "star-wars application"
+      end
+
       context "when moving the padawan from the berserk to a ninja" do
         let (:different_id_from_berserk) { berserk.id * 2 }
         let (:ninja)                     { Ninja.new(id: different_id_from_berserk, dynasty: dynasty, name: "Jean Paul", color: :black, height: 160, weight: 60) }
-        let (:update_padawan_events)     { @event_publisher.fetch_events("new.ninja_app.entity_change.update padawan") }
+        let (:update_padawan_events)     { @event_publisher.fetch_events("new.star-wars application.entity_change.update padawan") }
         let (:update_padawan_event)      { update_padawan_events.first }
 
         before(:each) do
@@ -421,6 +425,10 @@ RSpec.describe Flu::ActiveRecordExtender do
 
         it "should add ninja_type to the update padawan event" do
           expect(update_padawan_event.data["associations"]["masterType"]).to eq Ninja.name
+        end
+
+        it "should set the overriden emitter on the Padawan event" do
+          expect(update_padawan_event.emitter).to eq "star-wars application"
         end
       end
     end

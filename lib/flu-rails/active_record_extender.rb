@@ -3,11 +3,11 @@ module Flu
     def self.extend_models(event_factory, event_publisher)
       ActiveRecord::Base.class_eval do
         define_singleton_method(:track_entity_changes) do |options = {}|
-          self.flu_is_tracked            = true
-          self.flu_user_metadata_lambdas = options.fetch(:user_metadata, {})
-          self.flu_ignored_model_changes = options.fetch(:ignored_model_changes, []).map(&:to_s)
+          self.flu_is_tracked               = true
+          self.flu_user_metadata_lambdas    = options.fetch(:user_metadata, {})
+          self.flu_ignored_model_changes    = options.fetch(:ignored_model_changes, []).map(&:to_s)
+          self.flu_overriden_emitter_lambda = options.fetch(:emitter, nil)
         
-
           after_create   { flu_track_entity_change(:create, flu_changes_depending_on_active_record_version, event_factory) }
           after_update   { flu_track_entity_change(:update, flu_changes_depending_on_active_record_version, event_factory) }
           after_destroy  { flu_track_entity_change(:destroy, { "id" => [id, nil] }, event_factory) }
@@ -21,6 +21,14 @@ module Flu
 
         def self.flu_ignored_model_changes
           @flu_ignored_model_changes
+        end
+
+        def self.flu_overriden_emitter_lambda=(overriden_emitter_lambda)
+          @flu_overriden_emitter_lambda = overriden_emitter_lambda
+        end
+
+        def self.flu_overriden_emitter_lambda
+          @flu_overriden_emitter_lambda
         end
 
         def self.flu_user_metadata_lambdas=(user_metadata_lambdas)
@@ -106,7 +114,8 @@ module Flu
                                                                                            changes,
                                                                                            self.class.flu_user_metadata_lambdas[action_name],
                                                                                            self.class.flu_association_columns,
-                                                                                           self.class.flu_ignored_model_changes)
+                                                                                           self.class.flu_ignored_model_changes,
+                                                                                           self.class.flu_overriden_emitter_lambda)
             flu_changes.push(data) unless data.nil?
           end
         end

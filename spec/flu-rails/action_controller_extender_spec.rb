@@ -32,6 +32,7 @@ RSpec.describe Flu::ActionControllerExtender do
 
     let (:dynasties_controller) { DynastiesController.new }
     let (:ninjas_controller)    { NinjasController.new }
+    let (:farmers_controller)   { FarmersController.new }
 
     context "when calling DynastiesController#create" do
       xit "should not emit any event" do
@@ -46,6 +47,18 @@ RSpec.describe Flu::ActionControllerExtender do
           # ninjas_controller.set_request!(ActionDispatch::Request.empty)
           # ninjas_controller.params = ActionController::Parameters.new({})
           ninjas_controller.process(:create)
+        end
+
+        xit "should emit a single event" do
+          expect(@event_publisher.events_count).to eq 1
+        end
+      end
+    end
+
+    context "when calling farmers_controller#create" do
+      context "with no parameters" do
+        before(:each) do
+          farmers_controller.process(:create)
         end
 
         xit "should emit a single event" do

@@ -75,7 +75,7 @@ RSpec.shared_context "active records defined", :shared_context => :metadata do
     end
 
     class Padawan < ActiveRecord::Base
-      track_entity_changes
+      track_entity_changes emitter: lambda { " star-wars application " }
       belongs_to :master, polymorphic: true
     end
   end

@@ -41,6 +41,10 @@ RSpec.shared_context "controllers defined", :shared_context => :metadata do
       }
     end
 
+    class FarmersController < ApplicationController
+      track_requests emitter: lambda { "farmer-app" }
+    end
+
     class BerserksController < ActionController::API
     end
 

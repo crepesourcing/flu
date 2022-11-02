@@ -99,19 +99,60 @@ RSpec.describe Flu::EventFactory do
       before(:each) do
         @event = factory.build_entity_change_event(data)
       end
-      it "should set a valid name" do
-        expect(@event.name).to eq "create invoice"
+
+      context "and the emitter is not overriden" do
+        it "should set a valid name" do
+          expect(@event.name).to eq "create invoice"
+        end
+        it "should set a valid kind" do
+          expect(@event.kind).to eq :entity_change
+        end
+        it "should set the emitter to the application name" do
+          expect(@event.emitter).to eq application_name
+        end
+        it "should set a valid id" do
+          expect(@event.id).not_to be_nil
+        end        
       end
-      it "should set a valid kind" do
-        expect(@event.kind).to eq :entity_change
-      end
-      it "should set the emitter to the application name" do
-        expect(@event.emitter).to eq application_name
-      end
-      it "should set a valid id" do
-        expect(@event.id).not_to be_nil
+
+      context "when data contains the key 'overriden_emitter'" do
+        let(:overriden_emitter) { nil }
+        let(:data) do
+          {
+            action_name: "create",
+            entity_name: "invoice",
+            overriden_emitter: overriden_emitter,
+            changes: changes
+          }
+        end
+
+        context "and the overriden emitter is nil" do
+          let(:overriden_emitter) { nil }
+          it "should set the emitter to the application name" do
+            expect(@event.emitter).to eq application_name
+          end
+        end
+        context "and the overriden emitter is blank" do
+          let(:overriden_emitter) { "   " }
+          it "should set the emitter to the application name" do
+            expect(@event.emitter).to eq application_name
+          end
+        end
+        context "and the overriden emitter is valid" do
+          let(:overriden_emitter) { " hello  " }
+          it "should set the emitter to the sanitized overriden emitter" do
+            expect(@event.emitter).to eq "hello"
+          end
+        end
+        context "and the overriden emitter contains a dot" do
+          let(:overriden_emitter) { "with.a.dot" }
+          it "should set the emitter to the overriden emitter without the dots" do
+            expect(@event.emitter).to eq "withadot"
+          end
+        end
       end
     end
+
     context "when data has invalid characters" do
       let(:changes_with_invalid_characters) do
         {
@@ -163,13 +204,11 @@ RSpec.describe Flu::EventFactory do
       end
     end
     context "when data does not have any action_name" do
-      let (:changes) { valid_changes }
       it "should raise an error" do
         expect { factory.build_request_event(data.except(:action_name)) }.to raise_error(ArgumentError)
       end
     end
     context "when data does not any controller_name" do
-      let (:changes) { valid_changes }
       it "should raise an error" do
         expect { factory.build_request_event(data.except(:controller_name)) }.to raise_error(ArgumentError)
       end
@@ -199,7 +238,6 @@ RSpec.describe Flu::EventFactory do
       end
     end
 
-
     context "when data has invalid characters" do
       let(:data_with_invalid_characters) do
         {
@@ -217,27 +255,64 @@ RSpec.describe Flu::EventFactory do
       end
 
       it "removes the invalid character" do
-        p @event.data
         expect(@event.data.dig("params", "user")).to eq("User3 1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
       end
     end
 
     context "when data are valid" do
-      it "should set a valid name" do
-        event = factory.build_request_event(data)
-        expect(event.name).to eq "request to create orders"
+      context "and the emitter is not overriden" do
+        before(:each) do
+          @event = factory.build_request_event(data)
+        end
+
+        it "should set a valid name" do
+          expect(@event.name).to eq "request to create orders"
+        end
+        it "should set a valid kind" do
+          expect(@event.kind).to eq :request
+        end
+        it "should set the emitter to the application name" do
+          expect(@event.emitter).to eq application_name
+        end
+        it "should set a valid id" do
+          expect(@event.id).not_to be_nil
+        end
       end
-      it "should set a valid kind" do
-        event = factory.build_request_event(data)
-        expect(event.kind).to eq :request
-      end
-      it "should set the emitter to the application name" do
-        event = factory.build_request_event(data)
-        expect(event.emitter).to eq application_name
-      end
-      it "should set a valid id" do
-        event = factory.build_request_event(data)
-        expect(event.id).not_to be_nil
+
+      context "and the data has the key 'overriden_emitter'" do 
+        let(:overriden_emitter) { nil }
+        before(:each) do
+          data[:overriden_emitter] = overriden_emitter
+          @event = factory.build_request_event(data)
+        end
+
+        context "and the overriden emitter is nil" do
+          let(:overriden_emitter) { nil }
+          it "should set the emitter to the application name" do
+            expect(@event.emitter).to eq application_name
+          end
+        end
+
+        context "and the overriden emitter is blank" do
+          let(:overriden_emitter) { "   " }
+          it "should set the emitter to the application name" do
+            expect(@event.emitter).to eq application_name
+          end
+        end
+
+        context "and the overriden emitter is not blank" do
+          let(:overriden_emitter) { " an overriden Emitter  " }
+          it "should set the emitter to the overriden emitter" do
+            expect(@event.emitter).to eq "an overriden Emitter"
+          end
+        end
+
+        context "and the overriden emitter contains a dot" do
+          let(:overriden_emitter) { "with.a.dot" }
+          it "should set the emitter to the overriden emitter without the dots" do
+            expect(@event.emitter).to eq "withadot"
+          end
+        end
       end
     end
   end
@@ -246,6 +321,3 @@ RSpec.describe Flu::EventFactory do
   ## TODO test ignored fields and params
 
 end
-
-
-

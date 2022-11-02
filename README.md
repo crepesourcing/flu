@@ -67,6 +67,7 @@ All subclasses of `ActiveRecord::Base` that call `track_entity_changes` are "tra
 | ---- | ----- | ------ | ----- | ------ | ----- |
 | `user_metadata` | `{}`| Hash of lambdas | Optional | This hash can define two keys: `:create` and `:update`. Each value is a lambda that returns a hash. | `{create: lambda {{other_id: id}}}` |
 | `ignored_model_changes` | `[]`| Array of strings | Optional | Same as the global parameter `default_ignored_model_changes` for a dedicated class. This option does not override `default_ignored_model_changes`. | `[:rsa_key, :salt]` |
+| `emitter` | Emitter from configuration | Lambda that returns a string | Optional | This lambda is executed in each controller action to override the configuration's `emitter`. The result of this lambda cannot contain a dot ("`.`"). | `lambda { "overriden_emitter" }` |
 
 For instance:
 
@@ -101,6 +102,7 @@ All subclasses of `ActionController::Base` or `ActionController::API` (Rails 5) 
 | ---- | ----- | ------ | ----- | ------ | ----- |
 | `user_metadata` | `nil`| Lambda that returns a hash | Optional | This lambda is executed in each controller action to create an additional event attribute: `user_metadata`. | `lambda { {id: 4}}` |
 | `entity` | `nil`| Lambda that returns a hash | Optional | This lambda is executed in each controller action to attach a hash to every `entity_change` event related to it as an attribute named: `request_metadata`. | `lambda { {path: request.path}}` |
+| `emitter` | Emitter from configuration | Lambda that returns a string | Optional |  This lambda is executed in each controller action to override the configuration's `emitter`. The result of this lambda cannot contain a dot ("`.`"). | `lambda { "overriden_emitter" }` |
 
 For instance,
 
@@ -163,7 +165,7 @@ All options have a default value. However, all of them can be changed in your in
 | `auto_connect_to_exchange` | `true`| Boolean | Optional | Thanks to `Railties`, `flu-rails` starts automatically when the Rails app boots. However, this can be useful to not connect RabbitMQ at start up. To do so, set `auto_connect_to_exchange` to `false`.  | `false` |
 | `default_ignored_model_changes` | `[:password, :password_confirmation, :created_at, :updated_at]` | Boolean | Optional | By default, all these attributes will be ignored from model changes when creating an event. For instance, this means that timestamp fields (`created_at` and `updated_at`) are not monitored when they change. | `[]` |
 | `default_ignored_request_params` | `[:password, :password_confirmation, :controller, :action]` | Boolean | Optional | By default, all these parameters will be ignored from controller request's `params` when creating an event. | `false` |
-| `application_name` | `Rails.application.class.parent_name.to_s.camelize` | String | Required | Is used as `emitter` for each event created by `flu-rails`. | `my_app` |
+| `application_name` | `Rails.application.class.parent_name.to_s.camelize` | String | Required | Is used as `emitter` for each event created by `flu-rails`, if not overriden by the `track_met`. | `my_app` |
 | `bunny_options` | `{}` | Hash of symbols | Optional | Additional options to add when connecting the RabbitMQ broker. This overrides the existing options with the same name. | `{ verify_peer: true }` |
 
 ## How to execute tests
