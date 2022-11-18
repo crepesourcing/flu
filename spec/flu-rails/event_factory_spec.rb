@@ -115,6 +115,27 @@ RSpec.describe Flu::EventFactory do
         end        
       end
 
+      context "when data contains snakecase" do
+        let(:address) { "Rue de la colline" }
+        let(:data) do
+          {
+            action_name: "create",
+            entity_name: "invoice",
+            user_metadata: {
+              address: {
+                formatted_address: address
+              }
+            },
+            changes: changes
+          }
+        end
+        
+        it "does not modify the original data" do
+          expect(data.dig(:user_metadata, :address, :formatted_address)).to eq address
+          expect(data.dig("userMetadata", "address", "formattedAddress")).to be_nil
+        end
+      end
+
       context "when data contains the key 'overriden_emitter'" do
         let(:overriden_emitter) { nil }
         let(:data) do
@@ -170,6 +191,7 @@ RSpec.describe Flu::EventFactory do
         expect(@event.data.dig("changes", "month")[1]).to eq("november")
       end
     end
+  
   end
 
   describe "#build_request_event" do

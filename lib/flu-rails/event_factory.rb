@@ -82,11 +82,10 @@ module Flu
       when Array
         value.map { |v| deep_camelize v }
       when Hash
-        value.keys.each do |k, v = value[k]|
-          value.delete k
-          value[camelize(sanitize(k.to_s), false)] = deep_camelize v
+        value.reduce({}) do |camelized_hash, (k,v)|
+          camelized_hash[camelize(sanitize(k.to_s), false)] = deep_camelize v
+          camelized_hash
         end
-        value
       else
         sanitize(value)
       end
